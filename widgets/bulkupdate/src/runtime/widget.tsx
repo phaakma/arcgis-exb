@@ -7,7 +7,8 @@ import {
   DataSourceComponent,
   type FeatureLayerDataSource,
   type ImmutableArray,
-  DataSourceManager
+  DataSourceManager,
+  FormattedMessage
 } from 'jimu-core'
 import { type IMConfig } from '../config'
 import { Button, Select, Option, Alert, Loading } from 'jimu-ui'
@@ -15,6 +16,7 @@ import type FeatureLayer from '@arcgis/core/layers/FeatureLayer'
 import type Domain from '@arcgis/core/layers/support/Domain.js'
 import type CodedValueDomain from '@arcgis/core/layers/support/CodedValueDomain.js'
 import Esri = __esri
+import defaultMessages from './translations'
 
 const { useState, useEffect } = React
 
@@ -145,12 +147,12 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
 
     // Set the alert based on validation result
     if (validation.errorCount === 0) {
-      setAlertState({ type: 'success', message: 'All edits applied successfully.' })
+      setAlertState({ type: 'success', message: props.intl.formatMessage({ id: 'alertSuccess', defaultMessage: defaultMessages.alertSuccess }) })
     } else if (validation.errorCount === validation.total) {
-      setAlertState({ type: 'error', message: 'All edits encountered errors.' })
+      setAlertState({ type: 'error', message: props.intl.formatMessage({ id: 'alertError', defaultMessage: defaultMessages.alertError }) })
       console.error(result)
     } else {
-      setAlertState({ type: 'warning', message: 'Some edits encountered errors.' })
+      setAlertState({ type: 'warning', message: props.intl.formatMessage({ id: 'alertWarning', defaultMessage: defaultMessages.alertWarning }) })
       console.warn(result)
     }
   }
@@ -165,9 +167,9 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
 
   return <div className='p-3'>
     <h2>
-      Bulk assign tasks
+    <FormattedMessage id="widgetTitle" defaultMessage={defaultMessages.widgetTitle}/>
     </h2>
-    <h5>Number of selected records: {selectionCount}</h5>
+    <h5><FormattedMessage id="numSelectedRecords" defaultMessage={defaultMessages.numSelectedRecords}/> {selectionCount}</h5>
 
     <DataSourceComponent
       useDataSource={props.useDataSources[0]} query={{ where: '1=1' } as FeatureLayerQueryParams}
@@ -182,7 +184,7 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
       <Select
         value={selectedCode}
         onChange={handleChange}
-        placeholder='Please select a user'
+        placeholder={props.intl.formatMessage({ id: 'selectionPlaceHolder', defaultMessage: defaultMessages.selectionPlaceHolder })}
       >
         {
           domainValues.codedValues
@@ -204,7 +206,7 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
         onClick={handleBulkUpdateClick}
         disabled={!(selectedCode) || editsBeingApplied}
       >
-        Assign tasks ({selectionCount})
+        <FormattedMessage id="buttonText" defaultMessage={defaultMessages.buttonText}/> ({selectionCount})
       </Button>
 
       <div className='d-flex align-items-center'>
