@@ -1,0 +1,7 @@
+{
+  "name": "my-exb-extension-repo",
+  "type": "exb-web-extension-repo",
+  "description": "Custom Experience Builder widgets by Paul Haakma",
+  "copyright": "",
+  "license": "http://www.apache.org/licenses/LICENSE-2.0"
+}
