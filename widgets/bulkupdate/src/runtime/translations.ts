@@ -1,4 +1,5 @@
 export default {
+  _widgetLabel: 'Bulk Update',
   widgetTitle: 'Bulk assign tasks',
   numSelectedRecords: 'Number of selected records:',
   selectionPlaceHolder: 'Please select a user',
