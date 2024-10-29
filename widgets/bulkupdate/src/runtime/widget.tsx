@@ -27,10 +27,11 @@ interface ValidationResult {
 }
 
 const Widget = (props: AllWidgetProps<IMConfig>) => {
+  const [dataSource, setDataSource] = useState<DataSource | undefined>(undefined)
   const [selectedCode, setSelectedCode] = useState<string | undefined>(undefined)
   const [domainValues, setDomainValues] = useState<CodedValueDomain | undefined>(undefined)
   const [selectionCount, setSelectionCount] = useState<number>(0)
-  const [selectedFeatureIds, setSelectedFeatureIds] = useState<ImmutableArray<string>>()
+  const [selectedFeatureIds, setSelectedFeatureIds] = useState<ImmutableArray<string> | string[]>()
   const [editableFeatureLayer, setEditableFeatureLayer] = useState<FeatureLayer>()
   const [editsBeingApplied, setEditsBeingApplied] = useState<boolean>(false)
   const [alertState, setAlertState] = useState<{ type: 'success' | 'warning' | 'error' | null, message: string }>({ type: null, message: '' })
@@ -63,6 +64,7 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
   }
 
   const dsCreated = (ds: FeatureLayerDataSource) => {
+    setDataSource(ds)
     const lyr: FeatureLayer = ds.layer
     setEditableFeatureLayer(lyr)
     const d: Domain = lyr.getFieldDomain(props.config.calculateField)
@@ -74,14 +76,16 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
 
   const dataRender = (ds: DataSource, info: IMDataSourceInfo) => {
     if (ds && ds.getStatus() === DataSourceStatus.Loaded) {
-      const selectedRecords = ds.getSelectedRecordIds()
-      setSelectionCount(selectedRecords.length)
+      //const selectedRecords = ds.getSelectedRecordIds()
+      //setSelectionCount(selectedRecords.length)
       return null
     }
   }
 
   const handleSelectionChange = (selection: ImmutableArray<string>): void => {
+    setSelectionCount(selection.length)
     setSelectedFeatureIds(selection)
+    console.log(`Handle selection change: ${selection.toString()}`)
   }
 
   function validateApplyEditsResult(result: Esri.EditsResult): ValidationResult {
@@ -120,13 +124,20 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
   const handleBulkUpdateClick = async (evt: any) => {
     console.log(`${selectedCode} x ${selectionCount}`)
     const featuresToUpdate: any[] = []
-    selectedFeatureIds.forEach(id => {
+
+    if (!selectedFeatureIds || selectedFeatureIds.length === 0) {
+      console.warn('Something is wrong with the selection!')
+      const ids = dataSource.getSelectedRecordIds()
+      setSelectedFeatureIds(ids)
+    }
+
+    selectedFeatureIds.forEach((id: string | number) => {
       const feature = {
         attributes: {
           CurrentlyAssignedTo: selectedCode
         }
       }
-      feature.attributes[editableFeatureLayer.objectIdField] = id
+      feature.attributes[editableFeatureLayer.objectIdField] = parseInt(id)
       featuresToUpdate.push(feature)
     })
     setEditsBeingApplied(true)
@@ -136,13 +147,11 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
 
     // Refresh the data source if edits were applied successfully
     if (validation.successful > 0) {
-      const dataSource: DataSource = DataSourceManager.getInstance().getDataSource(props.useDataSources[0].dataSourceId)
       //can't figure out a way to get an associated List widget to refresh it's data,
       //so for now best to just clear the selection and force the user to reselect records.
       dataSource.selectRecordsByIds([])
       setSelectedCode(null)
     }
-
     setEditsBeingApplied(false)
 
     // Set the alert based on validation result
@@ -167,9 +176,9 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
 
   return <div className='p-3'>
     <h2>
-    <FormattedMessage id="widgetTitle" defaultMessage={defaultMessages.widgetTitle}/>
+      <FormattedMessage id="widgetTitle" defaultMessage={defaultMessages.widgetTitle} />
     </h2>
-    <h5><FormattedMessage id="numSelectedRecords" defaultMessage={defaultMessages.numSelectedRecords}/> {selectionCount}</h5>
+    <h5><FormattedMessage id="numSelectedRecords" defaultMessage={defaultMessages.numSelectedRecords} /> {selectionCount}</h5>
 
     <DataSourceComponent
       useDataSource={props.useDataSources[0]} query={{ where: '1=1' } as FeatureLayerQueryParams}
@@ -206,7 +215,7 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
         onClick={handleBulkUpdateClick}
         disabled={!(selectedCode) || editsBeingApplied}
       >
-        <FormattedMessage id="buttonText" defaultMessage={defaultMessages.buttonText}/> ({selectionCount})
+        <FormattedMessage id="buttonText" defaultMessage={defaultMessages.buttonText} /> ({selectionCount})
       </Button>
 
       <div className='d-flex align-items-center'>
