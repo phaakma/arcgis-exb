@@ -24,4 +24,15 @@ Refer to this documentation:
   ],
 }
 ```
+## Deploying to ArcGIS Enterprise  
+
+[Add Custom Widgets To ArcGIS Enterprise](https://doc.arcgis.com/en/experience-builder/11.3/configure-widgets/add-custom-widgets.htm)  
+
+Follow the full steps in the link above to host the widget and add to ArcGIS Enterprise.  
+
+The npm command to compile the widget needs to be run from the ArcGIS Enterprise Developer client folder.  
+```npm run build:prod```  
+
+The compiled widget is then found in the client/dist-prod/widgets directory.  
+
 
