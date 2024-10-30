@@ -4,6 +4,9 @@ import {
   SET_TO_NULL,
   type NewValues
 } from './types'
+import {
+  type ImmutableArray
+} from 'jimu-core'
 import Esri = __esri
 
 export const isDsConfigured = (props) => {
@@ -38,7 +41,12 @@ export const validateApplyEditsResult = (result: Esri.EditsResult): ValidationRe
   )
 }
 
-export const handleSelectedCodeChange = (event: React.ChangeEvent<HTMLSelectElement>, fieldName: string, newValues: NewValues, setNewValues: React.Dispatch<React.SetStateAction<NewValues>>) => {
+export const handleSelectedCodeChange = (
+  event: React.ChangeEvent<HTMLSelectElement>,
+  fieldName: string,
+  newValues: NewValues,
+  setNewValues: React.Dispatch<React.SetStateAction<NewValues>>
+) => {
   const _newValue: string | number = event.target.value
   const _newValues = { ...newValues, [fieldName]: event.target.value }
   if (_newValue === LEAVE_EXISTING_VALUES) {
@@ -47,4 +55,14 @@ export const handleSelectedCodeChange = (event: React.ChangeEvent<HTMLSelectElem
     _newValues[fieldName] = null
   }
   setNewValues(_newValues)
+}
+
+export const handleSelectionChange = (
+  selection: ImmutableArray<string>,
+  setSelectedFeatureIds: React.Dispatch<React.SetStateAction<ImmutableArray<string> | string[]>>
+): void => {
+  //console.log(`Handle selection change: ${selection ? selection.toString() : 'no selection object'}`)
+  if (selection) {
+    setSelectedFeatureIds(selection)
+  }
 }

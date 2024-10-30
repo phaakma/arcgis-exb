@@ -16,7 +16,12 @@ import type CodedValueDomain from '@arcgis/core/layers/support/CodedValueDomain.
 import Esri = __esri
 import defaultMessages from './translations'
 import { type ValidationResult, type FieldArray, type NewValues, LEAVE_EXISTING_VALUES, SET_TO_NULL } from './types'
-import { isDsConfigured, validateApplyEditsResult, handleSelectedCodeChange } from './utils'
+import {
+  isDsConfigured,
+  validateApplyEditsResult,
+  handleSelectedCodeChange,
+  handleSelectionChange
+} from './utils'
 
 const { useState, useEffect } = React
 
@@ -41,6 +46,12 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
       }
     }
   }, [alertState])
+
+  useEffect(() => {
+    if (selectedFeatureIds) {
+      setSelectionCount(selectedFeatureIds.length)
+    }
+  }, [selectedFeatureIds])
 
   const dsCreated = (ds: FeatureLayerDataSource) => {
     setDataSource(ds)
@@ -67,13 +78,13 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
     }
   }
 
-  const handleSelectionChange = (selection: ImmutableArray<string>): void => {
-    //console.log(`Handle selection change: ${selection ? selection.toString() : 'no selection object'}`)
-    if (selection) {
-      setSelectionCount(selection.length)
-      setSelectedFeatureIds(selection)
-    }
-  }
+  // const handleSelectionChange = (selection: ImmutableArray<string>): void => {
+  //   //console.log(`Handle selection change: ${selection ? selection.toString() : 'no selection object'}`)
+  //   if (selection) {
+  //     setSelectionCount(selection.length)
+  //     setSelectedFeatureIds(selection)
+  //   }
+  // }
 
   const handleBulkUpdateClick = async (evt: any) => {
     const featuresToUpdate: any[] = []
@@ -131,7 +142,7 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
       useDataSource={props.useDataSources[0]} query={{ where: '1=1' } as FeatureLayerQueryParams}
       widgetId={props.id}
       onDataSourceCreated={dsCreated}
-      onSelectionChange={handleSelectionChange}
+      onSelectionChange={(selection) => { handleSelectionChange(selection, setSelectedFeatureIds) } }
     >
       {dataRender}
     </DataSourceComponent>
