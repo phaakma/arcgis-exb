@@ -1,7 +1,7 @@
 import { type ImmutableObject } from 'seamless-immutable'
 
 export interface Config {
-  calculateField: string
+  calculateFields: string[]
   widgetTitle: string
   valuePlaceHolder: string
   buttonText: string

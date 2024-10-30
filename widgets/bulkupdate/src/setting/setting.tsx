@@ -69,7 +69,7 @@ export default function Setting(props: AllWidgetSettingProps<IMConfig>) {
   const fieldsListChangeHandler = (allSelectedFields: IMFieldSchema[]) => {
     props.onSettingChange({
       id: props.id,
-      config: props.config.set('calculateField', allSelectedFields[0].name),
+      config: props.config.set('calculateFields', allSelectedFields.map(f => f.jimuName)),
       useDataSources: [{ ...props.useDataSources[0], ...{ fields: allSelectedFields.map(f => f.jimuName) } }]
     })
   }
@@ -92,8 +92,8 @@ export default function Setting(props: AllWidgetSettingProps<IMConfig>) {
           <FieldSelector
             useDataSources={props.useDataSources}
             onChange={fieldsListChangeHandler}
-            selectedFields={Immutable([props.config.calculateField])}
-            isMultiple={false}
+            selectedFields={props.config.calculateFields || Immutable([])}
+            isMultiple={true}
             isSearchInputHidden={false}
             isDataSourceDropDownHidden
             useDropdown={true}

@@ -12,7 +12,6 @@ import {
 import { type IMConfig } from '../config'
 import { Button, Select, Option, Alert, Loading } from 'jimu-ui'
 import type FeatureLayer from '@arcgis/core/layers/FeatureLayer'
-import type Domain from '@arcgis/core/layers/support/Domain.js'
 import type CodedValueDomain from '@arcgis/core/layers/support/CodedValueDomain.js'
 import Esri = __esri
 import defaultMessages from './translations'
@@ -25,10 +24,22 @@ interface ValidationResult {
   successful: number
 }
 
+interface FieldEntry {
+  name: string
+  alias: string
+  domain: CodedValueDomain
+}
+type FieldArray = FieldEntry[]
+
+interface NewValues {
+  [key: string]: string | number | undefined
+}
+
 const Widget = (props: AllWidgetProps<IMConfig>) => {
   const [dataSource, setDataSource] = useState<DataSource | undefined>(undefined)
   const [selectedCode, setSelectedCode] = useState<string | undefined>(undefined)
-  const [domainValues, setDomainValues] = useState<CodedValueDomain | undefined>(undefined)
+  const [newValues, setNewValues] = useState<NewValues>({})
+  const [fieldsToUpdate, setFieldsToUpdate] = useState<FieldArray>([])
   const [selectionCount, setSelectionCount] = useState<number>(0)
   const [selectedFeatureIds, setSelectedFeatureIds] = useState<ImmutableArray<string> | string[]>()
   const [editableFeatureLayer, setEditableFeatureLayer] = useState<FeatureLayer>()
@@ -47,30 +58,41 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
     }
   }, [alertState])
 
+  useEffect(() => {
+    if (selectedFeatureIds) console.log(selectedFeatureIds)
+  }, [selectedFeatureIds])
+
   const isDsConfigured = () => {
     if (props.useDataSources &&
       props.useDataSources.length === 1 &&
       props.useDataSources[0].fields &&
-      props.useDataSources[0].fields.length === 1
+      props.useDataSources[0].fields.length > 0
     ) {
       return true
     }
     return false
   }
 
-  const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleSelectedCodeChange = (event: React.ChangeEvent<HTMLSelectElement>, fieldName: string) => {
+    console.log(fieldName)
     setSelectedCode(event.target.value)
+    setNewValues(prevValues => ({ ...prevValues, [fieldName]: event.target.value }))
   }
 
   const dsCreated = (ds: FeatureLayerDataSource) => {
     setDataSource(ds)
     const lyr: FeatureLayer = ds.layer
     setEditableFeatureLayer(lyr)
-    const d: Domain = lyr.getFieldDomain(props.config.calculateField)
-    if (d.type !== 'coded-value') {
-      console.error('Domain is the wrong type')
-    }
-    setDomainValues(d as CodedValueDomain)
+
+    const fields: FieldArray = Array.from(props.config.calculateFields).map((f) => {
+      const field: Esri.Field = lyr.fieldsIndex.get(f)
+      return {
+        name: field.name,
+        alias: field.alias,
+        domain: field.domain as CodedValueDomain
+      }
+    })
+    setFieldsToUpdate(fields)
   }
 
   const dataRender = (ds: DataSource, info: IMDataSourceInfo) => {
@@ -122,23 +144,12 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
     }
   }
 
-  const handleBulkUpdateClick = async (evt: any) => {
-    console.log(`${selectedCode} x ${selectionCount}`)
+  const handleBulkUpdateClick = async (evt: any) => { 
     const featuresToUpdate: any[] = []
-    const updateField = props.config.calculateField
-
-    //this is an attempt to resolve a bug with Experience Builder in
-    //AE v11.3 but it doesn't seem to help. :(
-    if (!selectedFeatureIds || selectedFeatureIds.length === 0) {
-      console.warn('Something is wrong with the selection!')
-      const ids = dataSource.getSelectedRecordIds()
-      setSelectedFeatureIds(ids)
-    }
 
     selectedFeatureIds.forEach((id: string | number) => {
-      const feature = { attributes: {} }
-      feature.attributes[updateField] = selectedCode
-      feature.attributes[editableFeatureLayer.objectIdField] = parseInt(id)
+      console.log(`id: ${id}`)
+      const feature = { attributes: { ...newValues, [editableFeatureLayer.objectIdField]: parseInt(id) } }
       featuresToUpdate.push(feature)
     })
     setEditsBeingApplied(true)
@@ -192,28 +203,29 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
       {dataRender}
     </DataSourceComponent>
 
-    {domainValues && domainValues.codedValues && (
-      <Select
-        value={selectedCode}
-        onChange={handleChange}
-        placeholder={
-          props.config.valuePlaceHolder > ''
-            ? props.config.valuePlaceHolder
-            : props.intl.formatMessage({
-              id: 'selectionPlaceHolder', defaultMessage: defaultMessages.selectionPlaceHolder
-            })}
-      >
-        {
-          domainValues.codedValues
-            .slice()
-            .sort((a, b) => a.name.localeCompare(b.name))
-            .map((u) => (
-              <Option key={u.code} value={u.code}>
-                {u.name}
-              </Option>
-            ))
-        }
-      </Select>
+    {fieldsToUpdate && fieldsToUpdate.length > 0 && (
+      fieldsToUpdate.map((f) => (
+        <Select
+          className='pt-3'
+          key={f.name}
+          onChange={(event) => { handleSelectedCodeChange(event, f.name) }}
+          placeholder={
+            `${props.intl.formatMessage({ id: 'selectionPlaceHolder', defaultMessage: defaultMessages.selectionPlaceHolder })} ${f.alias ? f.alias : f.name}`
+          }
+        >
+          {
+            f.domain && f.domain.type === 'coded-value' &&
+            Array.from(f.domain.codedValues)
+              .slice()
+              .sort((a, b) => a.name.localeCompare(b.name))
+              .map((u) => (
+                <Option key={u.code} value={u.code}>
+                  {u.name}
+                </Option>
+              ))
+          }
+        </Select>
+      ))
     )}
 
     <div className='d-flex w-100 mb-2 pt-3 justify-content-between align-items-center'>
@@ -258,9 +270,6 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
         )}
       </div>
     </div>
-
-
-
   </div>
 }
 export default Widget

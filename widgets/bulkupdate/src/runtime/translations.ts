@@ -2,7 +2,7 @@ export default {
   _widgetLabel: 'Bulk Update',
   widgetTitle: 'Bulk Update Records',
   numSelectedRecords: 'Number of selected records:',
-  selectionPlaceHolder: 'Please select value',
+  selectionPlaceHolder: 'Select new value for',
   buttonText: 'Update records',
   alertSuccess: 'All edits applied successfully.',
   alertWarning: 'Some edits encountered errors.',
