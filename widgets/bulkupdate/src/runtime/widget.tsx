@@ -113,7 +113,7 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
               f.domain && f.domain.type === 'coded-value' &&
               [
                 { code: LEAVE_EXISTING_VALUES, name: 'Leave existing values' },
-                { code: SET_TO_NULL, name: 'Set to null' },
+                ...(f.allowNulls ? [{ code: SET_TO_NULL, name: 'Set to null' }] : []),
                 ...Array.from(f.domain.codedValues)
                   .slice()
                   .sort((a, b) => a.name.localeCompare(b.name))

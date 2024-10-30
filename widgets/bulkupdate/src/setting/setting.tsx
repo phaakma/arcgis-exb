@@ -7,13 +7,13 @@ import {
   type FeatureLayerDataSource
 } from 'jimu-core'
 import { type AllWidgetSettingProps } from 'jimu-for-builder'
-import { TextInput, Label } from 'jimu-ui'
+import { TextInput, Label, Checkbox } from 'jimu-ui'
 import { DataSourceSelector, FieldSelector } from 'jimu-ui/advanced/data-source-selector'
 import {
   SettingSection
 } from 'jimu-ui/advanced/setting-components'
 import { DataSourceManager } from 'jimu-core'
-import { type IMConfig } from '../config'
+import { type IMConfig, type ArrayConfigFields } from '../config'
 
 const { useState, useEffect } = React
 
@@ -54,10 +54,35 @@ export default function Setting(props: AllWidgetSettingProps<IMConfig>) {
 
   // When a field is chosen from the dropdown, save it to the settings.
   const fieldsListChangeHandler = (allSelectedFields: IMFieldSchema[]) => {
+    const fieldsUpdate: ArrayConfigFields = allSelectedFields.map(f => {
+      return {
+        name: f.jimuName,
+        allowNulls: false
+      }
+    })
     props.onSettingChange({
       id: props.id,
-      config: props.config.set('calculateFields', allSelectedFields.map(f => f.jimuName)),
+      config: props.config.set('fields', fieldsUpdate),
       useDataSources: [{ ...props.useDataSources[0], ...{ fields: allSelectedFields.map(f => f.jimuName) } }]
+    })
+  }
+
+  // When a field is checked as being able to be set to null or not, save it to the settings
+  const allowNullChangeHandler = (checked: boolean, fieldName: string) => {
+    const currentFields = props.config.fields || []
+    const updatedFields = currentFields.map(field => {
+      if (field.name === fieldName) {
+        return {
+          ...field,
+          allowNulls: checked
+        }
+      }
+      return field
+    })
+
+    props.onSettingChange({
+      id: props.id,
+      config: props.config.set('fields', updatedFields)
     })
   }
 
@@ -79,7 +104,7 @@ export default function Setting(props: AllWidgetSettingProps<IMConfig>) {
           <FieldSelector
             useDataSources={props.useDataSources}
             onChange={fieldsListChangeHandler}
-            selectedFields={props.config.calculateFields || Immutable([])}
+            selectedFields={props?.config?.fields?.map(f => f.name) || Immutable([])}
             isMultiple={true}
             isSearchInputHidden={false}
             isDataSourceDropDownHidden
@@ -87,6 +112,31 @@ export default function Setting(props: AllWidgetSettingProps<IMConfig>) {
             hiddenFields={hiddenFields}
           />
         </>
+      }
+
+      {props.config.fields && props.config.fields.length > 0 && (
+        <>
+          <Label className='pt-2' size='lg'>Allow setting to null?</Label>
+          {props.config.fields.map((f) => (
+            <Label centric={true}>
+              <Checkbox
+                checked={props.config.fields.find(fld => fld.name === f.name).allowNulls}
+                className='mr-2'
+                onChange={
+                  (event, checked) => {
+                    allowNullChangeHandler(
+                      checked,
+                      f.name
+                    )
+                  }}
+              />
+
+              {f.name}
+            </Label>
+          )
+          )}
+        </>
+      )
       }
     </SettingSection>
 

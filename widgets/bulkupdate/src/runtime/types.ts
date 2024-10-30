@@ -10,6 +10,7 @@ export interface FieldEntry {
   name: string
   alias: string
   domain: CodedValueDomain
+  allowNulls: boolean
 }
 
 export type FieldArray = FieldEntry[]

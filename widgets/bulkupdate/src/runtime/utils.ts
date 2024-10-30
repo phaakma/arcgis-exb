@@ -41,12 +41,13 @@ const dsCreated = (
   const lyr: FeatureLayer = ds.layer
   setEditableFeatureLayer(lyr)
 
-  const fields: FieldArray = Array.from(props.config.calculateFields).map((f) => {
-    const field: Esri.Field = lyr.fieldsIndex.get(f)
+  const fields: FieldArray = Array.from(props.config.fields).map((f) => {
+    const field: Esri.Field = lyr.fieldsIndex.get(f.name)
     return {
       name: field.name,
       alias: field.alias,
-      domain: field.domain as CodedValueDomain
+      domain: field.domain as CodedValueDomain,
+      allowNulls: f.allowNulls
     }
   })
   setFieldsToUpdate(fields)
