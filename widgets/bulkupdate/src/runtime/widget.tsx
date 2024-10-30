@@ -16,7 +16,7 @@ import type CodedValueDomain from '@arcgis/core/layers/support/CodedValueDomain.
 import Esri = __esri
 import defaultMessages from './translations'
 import { type ValidationResult, type FieldArray, type NewValues, LEAVE_EXISTING_VALUES, SET_TO_NULL } from './types'
-import { isDsConfigured, validateApplyEditsResult } from './utils'
+import { isDsConfigured, validateApplyEditsResult, handleSelectedCodeChange } from './utils'
 
 const { useState, useEffect } = React
 
@@ -41,17 +41,6 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
       }
     }
   }, [alertState])
-
-  const handleSelectedCodeChange = (event: React.ChangeEvent<HTMLSelectElement>, fieldName: string) => {
-    const _newValue: string | number = event.target.value
-    const _newValues = { ...newValues, [fieldName]: event.target.value }
-    if (_newValue === LEAVE_EXISTING_VALUES) {
-      delete _newValues[fieldName]
-    } else if (_newValue === SET_TO_NULL) {
-      _newValues[fieldName] = null
-    }
-    setNewValues(_newValues)
-  }
 
   const dsCreated = (ds: FeatureLayerDataSource) => {
     setDataSource(ds)
@@ -157,7 +146,7 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
             className='pt-0'
             key={f.name}
             value={newValues[f.name]}
-            onChange={(event) => { handleSelectedCodeChange(event, f.name) }}
+            onChange={(event) => { handleSelectedCodeChange(event, f.name, newValues, setNewValues) }}
             placeholder={
               `${props.intl.formatMessage({ id: 'selectionPlaceHolder', defaultMessage: defaultMessages.selectionPlaceHolder })}`
             }

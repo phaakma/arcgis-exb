@@ -1,4 +1,9 @@
-import { type ValidationResult } from './types'
+import {
+  type ValidationResult,
+  LEAVE_EXISTING_VALUES,
+  SET_TO_NULL,
+  type NewValues
+} from './types'
 import Esri = __esri
 
 export const isDsConfigured = (props) => {
@@ -31,4 +36,15 @@ export const validateApplyEditsResult = (result: Esri.EditsResult): ValidationRe
     },
     { total: 0, errorCount: 0, successful: 0 }
   )
+}
+
+export const handleSelectedCodeChange = (event: React.ChangeEvent<HTMLSelectElement>, fieldName: string, newValues: NewValues, setNewValues: React.Dispatch<React.SetStateAction<NewValues>>) => {
+  const _newValue: string | number = event.target.value
+  const _newValues = { ...newValues, [fieldName]: event.target.value }
+  if (_newValue === LEAVE_EXISTING_VALUES) {
+    delete _newValues[fieldName]
+  } else if (_newValue === SET_TO_NULL) {
+    _newValues[fieldName] = null
+  }
+  setNewValues(_newValues)
 }
