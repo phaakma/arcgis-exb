@@ -15,27 +15,9 @@ import type FeatureLayer from '@arcgis/core/layers/FeatureLayer'
 import type CodedValueDomain from '@arcgis/core/layers/support/CodedValueDomain.js'
 import Esri = __esri
 import defaultMessages from './translations'
+import { type ValidationResult, type FieldArray, type NewValues, LEAVE_EXISTING_VALUES, SET_TO_NULL } from './types'
 
 const { useState, useEffect } = React
-
-interface ValidationResult {
-  total: number
-  errorCount: number
-  successful: number
-}
-
-interface FieldEntry {
-  name: string
-  alias: string
-  domain: CodedValueDomain
-}
-type FieldArray = FieldEntry[]
-
-interface NewValues {
-  [key: string]: string | number | null
-}
-const LEAVE_EXISTING_VALUES = '|__LEAVE EXISTING VALUES__|'
-const SET_TO_NULL = '|__SET TO NULL__|'
 
 const validateApplyEditsResult = (result: Esri.EditsResult): ValidationResult => {
   // Extract arrays for different edit results
