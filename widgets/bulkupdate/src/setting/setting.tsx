@@ -45,16 +45,10 @@ export default function Setting(props: AllWidgetSettingProps<IMConfig>) {
     })
   }
 
-  const widgetTitleChangeHandler = (val: string) => {
+  const labelChangeHandler = (configName: string, val: string) => {
     props.onSettingChange({
       id: props.id,
-      config: props.config.set('widgetTitle', val)
-    })
-  }
-  const valuePlaceholderChangeHandler = (val: string) => {
-    props.onSettingChange({
-      id: props.id,
-      config: props.config.set('valuePlaceHolder', val)
+      config: props.config.set(configName, val)
     })
   }
 
@@ -80,11 +74,11 @@ export default function Setting(props: AllWidgetSettingProps<IMConfig>) {
       <DataSourceSelector
         types={Immutable([AllDataSourceTypes.FeatureLayer])}
         useDataSources={props.useDataSources}
-        mustUseDataSource= {true}
+        mustUseDataSource={true}
         onChange={onDataSourceChange}
         widgetId={props.id}
       />
-      { props.useDataSources && props.useDataSources.length > 0 &&
+      {props.useDataSources && props.useDataSources.length > 0 &&
         <>
           <Label className='pt-5' >
             Select the field that the updates will be applied to. Valid fields must be editable and have a coded value domain.
@@ -104,12 +98,12 @@ export default function Setting(props: AllWidgetSettingProps<IMConfig>) {
     </SettingSection>
 
     <SettingSection title='Configure display settings'>
-      <Label>Widget title - displays at the top of the widget.</Label>
-      <TextInput type='text' defaultValue={props.config.widgetTitle} onAcceptValue={widgetTitleChangeHandler} />
-      <Label>Value placeholder text.</Label>
-      <TextInput type='text' defaultValue={props.config.valuePlaceHolder} onAcceptValue={valuePlaceholderChangeHandler} />
-      <Label>Button text.</Label>
-      <TextInput type='text' defaultValue={props.config.buttonText} onAcceptValue={buttonTextChangeHandler} />
+      <Label size='lg'>Widget title</Label>
+      <Label size='sm'>Displays at the top of the widget</Label>
+      <TextInput className='pb-2' type='text' defaultValue={props.config.widgetTitle} onAcceptValue={(val) => { labelChangeHandler('widgetTitle', val) }} />
+      <Label size='lg'>Button label</Label>
+      <Label size='sm'>For the button that applies the updates</Label>
+      <TextInput className='pb-2' type='text' defaultValue={props.config.buttonText} onAcceptValue={(val) => { labelChangeHandler('buttonText', val) }} />
     </SettingSection>
   </div>
 }
