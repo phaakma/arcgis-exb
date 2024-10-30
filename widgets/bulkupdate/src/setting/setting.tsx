@@ -52,13 +52,6 @@ export default function Setting(props: AllWidgetSettingProps<IMConfig>) {
     })
   }
 
-  const buttonTextChangeHandler = (val: string) => {
-    props.onSettingChange({
-      id: props.id,
-      config: props.config.set('buttonText', val)
-    })
-  }
-
   // When a field is chosen from the dropdown, save it to the settings.
   const fieldsListChangeHandler = (allSelectedFields: IMFieldSchema[]) => {
     props.onSettingChange({
