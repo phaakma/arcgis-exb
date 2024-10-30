@@ -4,7 +4,7 @@ interface ConfigFields {
   name: string
   allowNulls: boolean
 }
-type ArrayConfigFields = ConfigFields[]
+export type ArrayConfigFields = ConfigFields[]
 
 export interface Config {
   fields: ArrayConfigFields
