@@ -32,7 +32,7 @@ interface FieldEntry {
 type FieldArray = FieldEntry[]
 
 interface NewValues {
-  [key: string]: string | number | undefined
+  [key: string]: string | number | null
 }
 const LEAVE_EXISTING_VALUES = '|__LEAVE EXISTING VALUES__|'
 const SET_TO_NULL = '|__SET TO NULL__|'
@@ -151,7 +151,10 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
     const featuresToUpdate: any[] = []
 
     selectedFeatureIds.forEach((id: string | number) => {
-      const feature = { attributes: { ...newValues, [editableFeatureLayer.objectIdField]: parseInt(id) } }
+      if (typeof id === 'string') {
+        id = parseInt(id)
+      }
+      const feature = { attributes: { ...newValues, [editableFeatureLayer.objectIdField]: id } }
       featuresToUpdate.push(feature)
     })
     setWidgetIsBusy(true)
@@ -188,7 +191,7 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
     </h3>
   }
 
-  return <div className='p-3' style={{ position: 'relative' }}>
+  return <div className='p-3' >
     <h2>{props.config.widgetTitle > ''
       ? props.config.widgetTitle
       : <FormattedMessage id="widgetTitle" defaultMessage={defaultMessages.widgetTitle} />
