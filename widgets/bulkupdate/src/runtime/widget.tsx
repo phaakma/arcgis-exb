@@ -34,10 +34,11 @@ type FieldArray = FieldEntry[]
 interface NewValues {
   [key: string]: string | number | undefined
 }
+const LEAVE_EXISTING_VALUES = '|__LEAVE EXISTING VALUES__|'
+const SET_TO_NULL = '|__SET TO NULL__|'
 
 const Widget = (props: AllWidgetProps<IMConfig>) => {
   const [dataSource, setDataSource] = useState<DataSource | undefined>(undefined)
-  const [selectedCode, setSelectedCode] = useState<string | undefined>(undefined)
   const [newValues, setNewValues] = useState<NewValues>({})
   const [fieldsToUpdate, setFieldsToUpdate] = useState<FieldArray>([])
   const [selectionCount, setSelectionCount] = useState<number>(0)
@@ -58,10 +59,6 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
     }
   }, [alertState])
 
-  useEffect(() => {
-    if (selectedFeatureIds) console.log(selectedFeatureIds)
-  }, [selectedFeatureIds])
-
   const isDsConfigured = () => {
     if (props.useDataSources &&
       props.useDataSources.length === 1 &&
@@ -74,9 +71,14 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
   }
 
   const handleSelectedCodeChange = (event: React.ChangeEvent<HTMLSelectElement>, fieldName: string) => {
-    console.log(fieldName)
-    setSelectedCode(event.target.value)
-    setNewValues(prevValues => ({ ...prevValues, [fieldName]: event.target.value }))
+    const _newValue: string | number = event.target.value
+    const _newValues = { ...newValues, [fieldName]: event.target.value }
+    if (_newValue === LEAVE_EXISTING_VALUES) {
+      delete _newValues[fieldName]
+    } else if (_newValue === SET_TO_NULL) {
+      _newValues[fieldName] = null
+    }
+    setNewValues(_newValues)
   }
 
   const dsCreated = (ds: FeatureLayerDataSource) => {
@@ -144,7 +146,7 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
     }
   }
 
-  const handleBulkUpdateClick = async (evt: any) => { 
+  const handleBulkUpdateClick = async (evt: any) => {
     const featuresToUpdate: any[] = []
 
     selectedFeatureIds.forEach((id: string | number) => {
@@ -162,7 +164,6 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
       //can't figure out a way to get an associated List widget to refresh it's data,
       //so for now best to just clear the selection and force the user to reselect records.
       dataSource.selectRecordsByIds([])
-      setSelectedCode(null)
     }
     setWidgetIsBusy(false)
 
@@ -208,6 +209,7 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
         <Select
           className='pt-3'
           key={f.name}
+          value={newValues[f.name]}
           onChange={(event) => { handleSelectedCodeChange(event, f.name) }}
           placeholder={
             `${props.intl.formatMessage({ id: 'selectionPlaceHolder', defaultMessage: defaultMessages.selectionPlaceHolder })} ${f.alias ? f.alias : f.name}`
@@ -215,14 +217,17 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
         >
           {
             f.domain && f.domain.type === 'coded-value' &&
-            Array.from(f.domain.codedValues)
-              .slice()
-              .sort((a, b) => a.name.localeCompare(b.name))
-              .map((u) => (
-                <Option key={u.code} value={u.code}>
-                  {u.name}
-                </Option>
-              ))
+            [
+              { code: LEAVE_EXISTING_VALUES, name: 'Leave existing values' },
+              { code: SET_TO_NULL, name: 'Set to null' },
+              ...Array.from(f.domain.codedValues)
+                .slice()
+                .sort((a, b) => a.name.localeCompare(b.name))
+            ].map((u) => (
+              <Option key={String(u.code)} value={u.code}>
+                {u.name}
+              </Option>
+            ))
           }
         </Select>
       ))
@@ -233,7 +238,7 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
         type='primary'
         size='default'
         onClick={handleBulkUpdateClick}
-        disabled={!(selectedCode) || widgetIsBusy}
+        disabled={!(Object.keys(newValues).length > 0 && selectionCount > 0 && !widgetIsBusy)}
       >
         {
           props.config.buttonText > ''
