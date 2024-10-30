@@ -10,7 +10,7 @@ import {
   FormattedMessage
 } from 'jimu-core'
 import { type IMConfig } from '../config'
-import { Button, Select, Option, Alert, Loading } from 'jimu-ui'
+import { Button, Select, Option, Alert, Loading, Label } from 'jimu-ui'
 import type FeatureLayer from '@arcgis/core/layers/FeatureLayer'
 import type CodedValueDomain from '@arcgis/core/layers/support/CodedValueDomain.js'
 import Esri = __esri
@@ -44,7 +44,7 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
   const [selectionCount, setSelectionCount] = useState<number>(0)
   const [selectedFeatureIds, setSelectedFeatureIds] = useState<ImmutableArray<string> | string[]>()
   const [editableFeatureLayer, setEditableFeatureLayer] = useState<FeatureLayer>()
-  const [widgetIsBusy, setWidgetIsBusy] = useState<boolean>(false)
+  const [widgetIsBusy, setWidgetIsBusy] = useState<boolean>(true)
   const [alertState, setAlertState] = useState<{ type: 'success' | 'warning' | 'error' | null, message: string }>({ type: null, message: '' })
   const [fadeOut, setFadeOut] = useState(false)
 
@@ -95,6 +95,7 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
       }
     })
     setFieldsToUpdate(fields)
+    setWidgetIsBusy(false)
   }
 
   const dataRender = (ds: DataSource, info: IMDataSourceInfo) => {
@@ -106,7 +107,7 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
   }
 
   const handleSelectionChange = (selection: ImmutableArray<string>): void => {
-    console.log(`Handle selection change: ${selection ? selection.toString() : 'no selection object'}`)
+    //console.log(`Handle selection change: ${selection ? selection.toString() : 'no selection object'}`)
     if (selection) {
       setSelectionCount(selection.length)
       setSelectedFeatureIds(selection)
@@ -150,7 +151,6 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
     const featuresToUpdate: any[] = []
 
     selectedFeatureIds.forEach((id: string | number) => {
-      console.log(`id: ${id}`)
       const feature = { attributes: { ...newValues, [editableFeatureLayer.objectIdField]: parseInt(id) } }
       featuresToUpdate.push(feature)
     })
@@ -164,6 +164,7 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
       //can't figure out a way to get an associated List widget to refresh it's data,
       //so for now best to just clear the selection and force the user to reselect records.
       dataSource.selectRecordsByIds([])
+      setNewValues({})
     }
     setWidgetIsBusy(false)
 
@@ -187,7 +188,7 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
     </h3>
   }
 
-  return <div className='p-3'>
+  return <div className='p-3' style={{ position: 'relative' }}>
     <h2>{props.config.widgetTitle > ''
       ? props.config.widgetTitle
       : <FormattedMessage id="widgetTitle" defaultMessage={defaultMessages.widgetTitle} />
@@ -206,30 +207,35 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
 
     {fieldsToUpdate && fieldsToUpdate.length > 0 && (
       fieldsToUpdate.map((f) => (
-        <Select
-          className='pt-3'
-          key={f.name}
-          value={newValues[f.name]}
-          onChange={(event) => { handleSelectedCodeChange(event, f.name) }}
-          placeholder={
-            `${props.intl.formatMessage({ id: 'selectionPlaceHolder', defaultMessage: defaultMessages.selectionPlaceHolder })} ${f.alias ? f.alias : f.name}`
-          }
-        >
-          {
-            f.domain && f.domain.type === 'coded-value' &&
-            [
-              { code: LEAVE_EXISTING_VALUES, name: 'Leave existing values' },
-              { code: SET_TO_NULL, name: 'Set to null' },
-              ...Array.from(f.domain.codedValues)
-                .slice()
-                .sort((a, b) => a.name.localeCompare(b.name))
-            ].map((u) => (
-              <Option key={String(u.code)} value={u.code}>
-                {u.name}
-              </Option>
-            ))
-          }
-        </Select>
+        <>
+          <Label className='pt-3 pb-0' size='lg'>
+            {f.alias ? f.alias : f.name}
+          </Label>
+          <Select
+            className='pt-0'
+            key={f.name}
+            value={newValues[f.name]}
+            onChange={(event) => { handleSelectedCodeChange(event, f.name) }}
+            placeholder={
+              `${props.intl.formatMessage({ id: 'selectionPlaceHolder', defaultMessage: defaultMessages.selectionPlaceHolder })}`
+            }
+          >
+            {
+              f.domain && f.domain.type === 'coded-value' &&
+              [
+                { code: LEAVE_EXISTING_VALUES, name: 'Leave existing values' },
+                { code: SET_TO_NULL, name: 'Set to null' },
+                ...Array.from(f.domain.codedValues)
+                  .slice()
+                  .sort((a, b) => a.name.localeCompare(b.name))
+              ].map((u) => (
+                <Option key={String(u.code)} value={u.code}>
+                  {u.name}
+                </Option>
+              ))
+            }
+          </Select>
+        </>
       ))
     )}
 
@@ -248,11 +254,11 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
       </Button>
 
       <div className='d-flex align-items-center'>
-        {widgetIsBusy && (
+        {/* {widgetIsBusy && (
           <div style={{ position: 'relative', marginRight: '0.5rem' }}>
             <Loading type='DONUT' />
           </div>
-        )}
+        )} */}
         {!widgetIsBusy && alertState.type && (
           <Alert
             style={{
@@ -272,6 +278,25 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
         )}
       </div>
     </div>
+    {/* Loading overlay */}
+    {widgetIsBusy && (
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(211, 211, 211, 0.5)', // light grey with 50% transparency
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 10 // Ensure it overlays other content
+        }}
+      >
+        <Loading type='SECONDARY' />
+      </div>
+    )}
   </div>
 }
 export default Widget
