@@ -7,7 +7,6 @@ import {
   DataSourceComponent,
   type FeatureLayerDataSource,
   type ImmutableArray,
-  DataSourceManager,
   FormattedMessage
 } from 'jimu-core'
 import { type IMConfig } from '../config'
@@ -83,9 +82,11 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
   }
 
   const handleSelectionChange = (selection: ImmutableArray<string>): void => {
-    setSelectionCount(selection.length)
-    setSelectedFeatureIds(selection)
-    console.log(`Handle selection change: ${selection.toString()}`)
+    console.log(`Handle selection change: ${selection ? selection.toString() : 'no selection object'}`)
+    if (selection) {
+      setSelectionCount(selection.length)
+      setSelectedFeatureIds(selection)
+    }
   }
 
   function validateApplyEditsResult(result: Esri.EditsResult): ValidationResult {
@@ -124,7 +125,10 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
   const handleBulkUpdateClick = async (evt: any) => {
     console.log(`${selectedCode} x ${selectionCount}`)
     const featuresToUpdate: any[] = []
+    const updateField = props.config.calculateField
 
+    //this is an attempt to resolve a bug with Experience Builder in
+    //AE v11.3 but it doesn't seem to help. :(
     if (!selectedFeatureIds || selectedFeatureIds.length === 0) {
       console.warn('Something is wrong with the selection!')
       const ids = dataSource.getSelectedRecordIds()
@@ -132,11 +136,8 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
     }
 
     selectedFeatureIds.forEach((id: string | number) => {
-      const feature = {
-        attributes: {
-          CurrentlyAssignedTo: selectedCode
-        }
-      }
+      const feature = { attributes: {} }
+      feature.attributes[updateField] = selectedCode
       feature.attributes[editableFeatureLayer.objectIdField] = parseInt(id)
       featuresToUpdate.push(feature)
     })
@@ -175,8 +176,10 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
   }
 
   return <div className='p-3'>
-    <h2>
-      <FormattedMessage id="widgetTitle" defaultMessage={defaultMessages.widgetTitle} />
+    <h2>{props.config.widgetTitle > ''
+      ? props.config.widgetTitle
+      : <FormattedMessage id="widgetTitle" defaultMessage={defaultMessages.widgetTitle} />
+    }
     </h2>
     <h5><FormattedMessage id="numSelectedRecords" defaultMessage={defaultMessages.numSelectedRecords} /> {selectionCount}</h5>
 
@@ -193,7 +196,12 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
       <Select
         value={selectedCode}
         onChange={handleChange}
-        placeholder={props.intl.formatMessage({ id: 'selectionPlaceHolder', defaultMessage: defaultMessages.selectionPlaceHolder })}
+        placeholder={
+          props.config.valuePlaceHolder > ''
+            ? props.config.valuePlaceHolder
+            : props.intl.formatMessage({
+              id: 'selectionPlaceHolder', defaultMessage: defaultMessages.selectionPlaceHolder
+            })}
       >
         {
           domainValues.codedValues
@@ -215,7 +223,11 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
         onClick={handleBulkUpdateClick}
         disabled={!(selectedCode) || editsBeingApplied}
       >
-        <FormattedMessage id="buttonText" defaultMessage={defaultMessages.buttonText} /> ({selectionCount})
+        {
+          props.config.buttonText > ''
+            ? props.config.buttonText
+            : <FormattedMessage id="buttonText" defaultMessage={defaultMessages.buttonText} />
+        } ({selectionCount})
       </Button>
 
       <div className='d-flex align-items-center'>
