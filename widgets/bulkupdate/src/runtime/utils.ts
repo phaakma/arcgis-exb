@@ -3,19 +3,22 @@ import {
   LEAVE_EXISTING_VALUES,
   SET_TO_NULL,
   type NewValues,
-  type AlertState
+  type AlertState,
+  type FieldArray
 } from './types'
 import {
   type ImmutableArray,
   type AllWidgetProps,
-  type DataSource
+  type DataSource,
+  type FeatureLayerDataSource
 } from 'jimu-core'
 import { type IMConfig } from '../config'
 import Esri = __esri
 import type FeatureLayer from '@arcgis/core/layers/FeatureLayer'
+import type CodedValueDomain from '@arcgis/core/layers/support/CodedValueDomain.js'
 import defaultMessages from './translations'
 
-export const isDsConfigured = (props) => {
+const isDsConfigured = (props) => {
   if (props.useDataSources &&
         props.useDataSources.length === 1 &&
         props.useDataSources[0].fields &&
@@ -26,7 +29,31 @@ export const isDsConfigured = (props) => {
   return false
 }
 
-export const validateApplyEditsResult = (result: Esri.EditsResult): ValidationResult => {
+const dsCreated = (
+  props: AllWidgetProps<IMConfig>,
+  ds: FeatureLayerDataSource,
+  setDataSource: React.Dispatch<React.SetStateAction<DataSource>>,
+  setEditableFeatureLayer: React.Dispatch<React.SetStateAction<FeatureLayer>>,
+  setFieldsToUpdate: React.Dispatch<React.SetStateAction<FieldArray>>,
+  setWidgetIsBusy: React.Dispatch<React.SetStateAction<boolean>>
+) => {
+  setDataSource(ds)
+  const lyr: FeatureLayer = ds.layer
+  setEditableFeatureLayer(lyr)
+
+  const fields: FieldArray = Array.from(props.config.calculateFields).map((f) => {
+    const field: Esri.Field = lyr.fieldsIndex.get(f)
+    return {
+      name: field.name,
+      alias: field.alias,
+      domain: field.domain as CodedValueDomain
+    }
+  })
+  setFieldsToUpdate(fields)
+  setWidgetIsBusy(false)
+}
+
+const validateApplyEditsResult = (result: Esri.EditsResult): ValidationResult => {
 // Extract arrays for different edit results
   const resultArrays = [
     result.addFeatureResults,
@@ -47,7 +74,7 @@ export const validateApplyEditsResult = (result: Esri.EditsResult): ValidationRe
   )
 }
 
-export const handleSelectedCodeChange = (
+const handleSelectedCodeChange = (
   event: React.ChangeEvent<HTMLSelectElement>,
   fieldName: string,
   newValues: NewValues,
@@ -63,7 +90,7 @@ export const handleSelectedCodeChange = (
   setNewValues(_newValues)
 }
 
-export const handleSelectionChange = (
+const handleSelectionChange = (
   selection: ImmutableArray<string>,
   setSelectedFeatureIds: React.Dispatch<React.SetStateAction<ImmutableArray<string> | string[]>>
 ): void => {
@@ -73,7 +100,7 @@ export const handleSelectionChange = (
   }
 }
 
-export const handleBulkUpdateClick = async (
+const handleBulkUpdateClick = async (
   props: AllWidgetProps<IMConfig>,
   newValues: NewValues,
   selectedFeatureIds: ImmutableArray<string> | string[],
@@ -116,4 +143,13 @@ export const handleBulkUpdateClick = async (
     setAlertState({ type: 'warning', message: props.intl.formatMessage({ id: 'alertWarning', defaultMessage: defaultMessages.alertWarning }) })
     console.warn(result)
   }
+}
+
+export const utils = {
+  isDsConfigured,
+  dsCreated,
+  validateApplyEditsResult,
+  handleSelectedCodeChange,
+  handleSelectionChange,
+  handleBulkUpdateClick
 }

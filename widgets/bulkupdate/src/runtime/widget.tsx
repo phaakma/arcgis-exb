@@ -12,8 +12,6 @@ import {
 import { type IMConfig } from '../config'
 import { Button, Select, Option, Alert, Loading, Label } from 'jimu-ui'
 import type FeatureLayer from '@arcgis/core/layers/FeatureLayer'
-import type CodedValueDomain from '@arcgis/core/layers/support/CodedValueDomain.js'
-import Esri = __esri
 import defaultMessages from './translations'
 import {
   type FieldArray,
@@ -22,12 +20,7 @@ import {
   SET_TO_NULL,
   type AlertState
 } from './types'
-import {
-  isDsConfigured,
-  handleSelectedCodeChange,
-  handleSelectionChange,
-  handleBulkUpdateClick
-} from './utils'
+import { utils } from './utils'
 
 const { useState, useEffect } = React
 
@@ -59,23 +52,6 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
     }
   }, [selectedFeatureIds])
 
-  const dsCreated = (ds: FeatureLayerDataSource) => {
-    setDataSource(ds)
-    const lyr: FeatureLayer = ds.layer
-    setEditableFeatureLayer(lyr)
-
-    const fields: FieldArray = Array.from(props.config.calculateFields).map((f) => {
-      const field: Esri.Field = lyr.fieldsIndex.get(f)
-      return {
-        name: field.name,
-        alias: field.alias,
-        domain: field.domain as CodedValueDomain
-      }
-    })
-    setFieldsToUpdate(fields)
-    setWidgetIsBusy(false)
-  }
-
   const dataRender = (ds: DataSource, info: IMDataSourceInfo) => {
     if (ds && ds.getStatus() === DataSourceStatus.Loaded) {
       //const selectedRecords = ds.getSelectedRecordIds()
@@ -84,7 +60,7 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
     }
   }
 
-  if (!isDsConfigured(props)) {
+  if (!utils.isDsConfigured(props)) {
     return <h3>
       Bulk Update Widget
       <br />
@@ -103,8 +79,17 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
     <DataSourceComponent
       useDataSource={props.useDataSources[0]} query={{ where: '1=1' } as FeatureLayerQueryParams}
       widgetId={props.id}
-      onDataSourceCreated={dsCreated}
-      onSelectionChange={(selection) => { handleSelectionChange(selection, setSelectedFeatureIds) } }
+      onDataSourceCreated={(ds) => {
+        utils.dsCreated(
+          props,
+          ds as FeatureLayerDataSource,
+          setDataSource,
+          setEditableFeatureLayer,
+          setFieldsToUpdate,
+          setWidgetIsBusy
+        )
+      } }
+      onSelectionChange={(selection) => { utils.handleSelectionChange(selection, setSelectedFeatureIds) } }
     >
       {dataRender}
     </DataSourceComponent>
@@ -119,7 +104,7 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
             className='pt-0'
             key={f.name}
             value={newValues[f.name]}
-            onChange={(event) => { handleSelectedCodeChange(event, f.name, newValues, setNewValues) }}
+            onChange={(event) => { utils.handleSelectedCodeChange(event, f.name, newValues, setNewValues) }}
             placeholder={
               `${props.intl.formatMessage({ id: 'selectionPlaceHolder', defaultMessage: defaultMessages.selectionPlaceHolder })}`
             }
@@ -148,7 +133,7 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
         type='primary'
         size='default'
         onClick={(evt) => {
-          handleBulkUpdateClick(
+          utils.handleBulkUpdateClick(
             props,
             newValues,
             selectedFeatureIds,
