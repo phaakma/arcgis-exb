@@ -19,3 +19,8 @@ export interface NewValues {
 }
 export const LEAVE_EXISTING_VALUES = '|__LEAVE EXISTING VALUES__|'
 export const SET_TO_NULL = '|__SET TO NULL__|'
+
+export interface AlertState {
+  type: 'success' | 'warning' | 'error' | null
+  message: string
+}

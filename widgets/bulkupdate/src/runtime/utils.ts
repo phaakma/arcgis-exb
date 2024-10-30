@@ -2,12 +2,18 @@ import {
   type ValidationResult,
   LEAVE_EXISTING_VALUES,
   SET_TO_NULL,
-  type NewValues
+  type NewValues,
+  type AlertState
 } from './types'
 import {
-  type ImmutableArray
+  type ImmutableArray,
+  type AllWidgetProps,
+  type DataSource
 } from 'jimu-core'
+import { type IMConfig } from '../config'
 import Esri = __esri
+import type FeatureLayer from '@arcgis/core/layers/FeatureLayer'
+import defaultMessages from './translations'
 
 export const isDsConfigured = (props) => {
   if (props.useDataSources &&
@@ -64,5 +70,50 @@ export const handleSelectionChange = (
   //console.log(`Handle selection change: ${selection ? selection.toString() : 'no selection object'}`)
   if (selection) {
     setSelectedFeatureIds(selection)
+  }
+}
+
+export const handleBulkUpdateClick = async (
+  props: AllWidgetProps<IMConfig>,
+  newValues: NewValues,
+  selectedFeatureIds: ImmutableArray<string> | string[],
+  editableFeatureLayer: FeatureLayer,
+  setWidgetIsBusy: React.Dispatch<React.SetStateAction<boolean>>,
+  setAlertState: React.Dispatch<React.SetStateAction<AlertState>>,
+  dataSource: DataSource,
+  setNewValues: React.Dispatch<React.SetStateAction<NewValues>>
+) => {
+  const featuresToUpdate: any[] = []
+
+  selectedFeatureIds.forEach((id: string | number) => {
+    if (typeof id === 'string') {
+      id = parseInt(id)
+    }
+    const feature = { attributes: { ...newValues, [editableFeatureLayer.objectIdField]: id } }
+    featuresToUpdate.push(feature)
+  })
+  setWidgetIsBusy(true)
+  setAlertState({ type: null, message: '' })
+  const result: Esri.EditsResult = await editableFeatureLayer.applyEdits({ updateFeatures: featuresToUpdate })
+  const validation: ValidationResult = validateApplyEditsResult(result)
+
+  // Refresh the data source if edits were applied successfully
+  if (validation.successful > 0) {
+    //can't figure out a way to get an associated List widget to refresh it's data,
+    //so for now best to just clear the selection and force the user to reselect records.
+    dataSource.selectRecordsByIds([])
+    setNewValues({})
+  }
+  setWidgetIsBusy(false)
+
+  // Set the alert based on validation result
+  if (validation.errorCount === 0) {
+    setAlertState({ type: 'success', message: props.intl.formatMessage({ id: 'alertSuccess', defaultMessage: defaultMessages.alertSuccess }) })
+  } else if (validation.errorCount === validation.total) {
+    setAlertState({ type: 'error', message: props.intl.formatMessage({ id: 'alertError', defaultMessage: defaultMessages.alertError }) })
+    console.error(result)
+  } else {
+    setAlertState({ type: 'warning', message: props.intl.formatMessage({ id: 'alertWarning', defaultMessage: defaultMessages.alertWarning }) })
+    console.warn(result)
   }
 }

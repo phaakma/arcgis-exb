@@ -15,12 +15,18 @@ import type FeatureLayer from '@arcgis/core/layers/FeatureLayer'
 import type CodedValueDomain from '@arcgis/core/layers/support/CodedValueDomain.js'
 import Esri = __esri
 import defaultMessages from './translations'
-import { type ValidationResult, type FieldArray, type NewValues, LEAVE_EXISTING_VALUES, SET_TO_NULL } from './types'
+import {
+  type FieldArray,
+  type NewValues,
+  LEAVE_EXISTING_VALUES,
+  SET_TO_NULL,
+  type AlertState
+} from './types'
 import {
   isDsConfigured,
-  validateApplyEditsResult,
   handleSelectedCodeChange,
-  handleSelectionChange
+  handleSelectionChange,
+  handleBulkUpdateClick
 } from './utils'
 
 const { useState, useEffect } = React
@@ -33,7 +39,7 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
   const [selectedFeatureIds, setSelectedFeatureIds] = useState<ImmutableArray<string> | string[]>()
   const [editableFeatureLayer, setEditableFeatureLayer] = useState<FeatureLayer>()
   const [widgetIsBusy, setWidgetIsBusy] = useState<boolean>(true)
-  const [alertState, setAlertState] = useState<{ type: 'success' | 'warning' | 'error' | null, message: string }>({ type: null, message: '' })
+  const [alertState, setAlertState] = useState<AlertState>({ type: null, message: '' })
   const [fadeOut, setFadeOut] = useState(false)
 
   useEffect(() => {
@@ -78,49 +84,41 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
     }
   }
 
-  // const handleSelectionChange = (selection: ImmutableArray<string>): void => {
-  //   //console.log(`Handle selection change: ${selection ? selection.toString() : 'no selection object'}`)
-  //   if (selection) {
-  //     setSelectionCount(selection.length)
-  //     setSelectedFeatureIds(selection)
+  // const handleBulkUpdateClick = async (evt: any) => {
+  //   const featuresToUpdate: any[] = []
+
+  //   selectedFeatureIds.forEach((id: string | number) => {
+  //     if (typeof id === 'string') {
+  //       id = parseInt(id)
+  //     }
+  //     const feature = { attributes: { ...newValues, [editableFeatureLayer.objectIdField]: id } }
+  //     featuresToUpdate.push(feature)
+  //   })
+  //   setWidgetIsBusy(true)
+  //   setAlertState({ type: null, message: '' })
+  //   const result: Esri.EditsResult = await editableFeatureLayer.applyEdits({ updateFeatures: featuresToUpdate })
+  //   const validation: ValidationResult = validateApplyEditsResult(result)
+
+  //   // Refresh the data source if edits were applied successfully
+  //   if (validation.successful > 0) {
+  //     //can't figure out a way to get an associated List widget to refresh it's data,
+  //     //so for now best to just clear the selection and force the user to reselect records.
+  //     dataSource.selectRecordsByIds([])
+  //     setNewValues({})
+  //   }
+  //   setWidgetIsBusy(false)
+
+  //   // Set the alert based on validation result
+  //   if (validation.errorCount === 0) {
+  //     setAlertState({ type: 'success', message: props.intl.formatMessage({ id: 'alertSuccess', defaultMessage: defaultMessages.alertSuccess }) })
+  //   } else if (validation.errorCount === validation.total) {
+  //     setAlertState({ type: 'error', message: props.intl.formatMessage({ id: 'alertError', defaultMessage: defaultMessages.alertError }) })
+  //     console.error(result)
+  //   } else {
+  //     setAlertState({ type: 'warning', message: props.intl.formatMessage({ id: 'alertWarning', defaultMessage: defaultMessages.alertWarning }) })
+  //     console.warn(result)
   //   }
   // }
-
-  const handleBulkUpdateClick = async (evt: any) => {
-    const featuresToUpdate: any[] = []
-
-    selectedFeatureIds.forEach((id: string | number) => {
-      if (typeof id === 'string') {
-        id = parseInt(id)
-      }
-      const feature = { attributes: { ...newValues, [editableFeatureLayer.objectIdField]: id } }
-      featuresToUpdate.push(feature)
-    })
-    setWidgetIsBusy(true)
-    setAlertState({ type: null, message: '' })
-    const result: Esri.EditsResult = await editableFeatureLayer.applyEdits({ updateFeatures: featuresToUpdate })
-    const validation: ValidationResult = validateApplyEditsResult(result)
-
-    // Refresh the data source if edits were applied successfully
-    if (validation.successful > 0) {
-      //can't figure out a way to get an associated List widget to refresh it's data,
-      //so for now best to just clear the selection and force the user to reselect records.
-      dataSource.selectRecordsByIds([])
-      setNewValues({})
-    }
-    setWidgetIsBusy(false)
-
-    // Set the alert based on validation result
-    if (validation.errorCount === 0) {
-      setAlertState({ type: 'success', message: props.intl.formatMessage({ id: 'alertSuccess', defaultMessage: defaultMessages.alertSuccess }) })
-    } else if (validation.errorCount === validation.total) {
-      setAlertState({ type: 'error', message: props.intl.formatMessage({ id: 'alertError', defaultMessage: defaultMessages.alertError }) })
-      console.error(result)
-    } else {
-      setAlertState({ type: 'warning', message: props.intl.formatMessage({ id: 'alertWarning', defaultMessage: defaultMessages.alertWarning }) })
-      console.warn(result)
-    }
-  }
 
   if (!isDsConfigured(props)) {
     return <h3>
@@ -185,7 +183,18 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
       <Button
         type='primary'
         size='default'
-        onClick={handleBulkUpdateClick}
+        onClick={(evt) => {
+          handleBulkUpdateClick(
+            props,
+            newValues,
+            selectedFeatureIds,
+            editableFeatureLayer,
+            setWidgetIsBusy,
+            setAlertState,
+            dataSource,
+            setNewValues
+          )
+        }}
         disabled={!(Object.keys(newValues).length > 0 && selectionCount > 0 && !widgetIsBusy)}
       >
         {
