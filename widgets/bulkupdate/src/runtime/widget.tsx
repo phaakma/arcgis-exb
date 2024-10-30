@@ -16,30 +16,9 @@ import type CodedValueDomain from '@arcgis/core/layers/support/CodedValueDomain.
 import Esri = __esri
 import defaultMessages from './translations'
 import { type ValidationResult, type FieldArray, type NewValues, LEAVE_EXISTING_VALUES, SET_TO_NULL } from './types'
-import { isDsConfigured } from './utils'
+import { isDsConfigured, validateApplyEditsResult } from './utils'
 
 const { useState, useEffect } = React
-
-const validateApplyEditsResult = (result: Esri.EditsResult): ValidationResult => {
-  // Extract arrays for different edit results
-  const resultArrays = [
-    result.addFeatureResults,
-    result.updateFeatureResults,
-    result.deleteFeatureResults,
-    result.addAttachmentResults,
-    result.deleteAttachmentResults,
-    result.updateAttachmentResults
-  ].filter(Boolean)
-
-  return resultArrays.reduce(
-    (acc, resultArray) => {
-      acc.total += resultArray.length
-      resultArray.forEach(editResult => editResult.error ? acc.errorCount++ : acc.successful++)
-      return acc
-    },
-    { total: 0, errorCount: 0, successful: 0 }
-  )
-}
 
 const Widget = (props: AllWidgetProps<IMConfig>) => {
   const [dataSource, setDataSource] = useState<DataSource | undefined>(undefined)
@@ -62,17 +41,6 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
       }
     }
   }, [alertState])
-
-  // const isDsConfigured = () => {
-  //   if (props.useDataSources &&
-  //     props.useDataSources.length === 1 &&
-  //     props.useDataSources[0].fields &&
-  //     props.useDataSources[0].fields.length > 0
-  //   ) {
-  //     return true
-  //   }
-  //   return false
-  // }
 
   const handleSelectedCodeChange = (event: React.ChangeEvent<HTMLSelectElement>, fieldName: string) => {
     const _newValue: string | number = event.target.value
