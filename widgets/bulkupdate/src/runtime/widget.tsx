@@ -43,7 +43,7 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
   const [selectionCount, setSelectionCount] = useState<number>(0)
   const [selectedFeatureIds, setSelectedFeatureIds] = useState<ImmutableArray<string> | string[]>()
   const [editableFeatureLayer, setEditableFeatureLayer] = useState<FeatureLayer>()
-  const [editsBeingApplied, setEditsBeingApplied] = useState<boolean>(false)
+  const [widgetIsBusy, setWidgetIsBusy] = useState<boolean>(false)
   const [alertState, setAlertState] = useState<{ type: 'success' | 'warning' | 'error' | null, message: string }>({ type: null, message: '' })
   const [fadeOut, setFadeOut] = useState(false)
 
@@ -152,7 +152,7 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
       const feature = { attributes: { ...newValues, [editableFeatureLayer.objectIdField]: parseInt(id) } }
       featuresToUpdate.push(feature)
     })
-    setEditsBeingApplied(true)
+    setWidgetIsBusy(true)
     setAlertState({ type: null, message: '' })
     const result: Esri.EditsResult = await editableFeatureLayer.applyEdits({ updateFeatures: featuresToUpdate })
     const validation: ValidationResult = validateApplyEditsResult(result)
@@ -164,7 +164,7 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
       dataSource.selectRecordsByIds([])
       setSelectedCode(null)
     }
-    setEditsBeingApplied(false)
+    setWidgetIsBusy(false)
 
     // Set the alert based on validation result
     if (validation.errorCount === 0) {
@@ -233,7 +233,7 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
         type='primary'
         size='default'
         onClick={handleBulkUpdateClick}
-        disabled={!(selectedCode) || editsBeingApplied}
+        disabled={!(selectedCode) || widgetIsBusy}
       >
         {
           props.config.buttonText > ''
@@ -243,21 +243,18 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
       </Button>
 
       <div className='d-flex align-items-center'>
-        {editsBeingApplied && (
+        {widgetIsBusy && (
           <div style={{ position: 'relative', marginRight: '0.5rem' }}>
             <Loading type='DONUT' />
           </div>
         )}
-        {!editsBeingApplied && alertState.type && (
+        {!widgetIsBusy && alertState.type && (
           <Alert
             style={{
               width: 'fit-content',
               maxWidth: '100%',
               ...(fadeOut
-                ? {
-                  opacity: 0,
-                  transition: 'opacity 0.5s ease-out'
-                }
+                ? { opacity: 0, transition: 'opacity 0.5s ease-out' }
                 : {})
             }}
             type={alertState.type}
