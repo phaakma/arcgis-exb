@@ -11,18 +11,41 @@ import {
 } from 'jimu-core'
 import { type IMConfig } from '../config'
 import { Button, Select, Option, Alert, Loading, Label } from 'jimu-ui'
+import type CodedValueDomain from '@arcgis/core/layers/support/CodedValueDomain.js'
 import type FeatureLayer from '@arcgis/core/layers/FeatureLayer'
 import defaultMessages from './translations'
 import {
+  type ValidationResult,
   type FieldArray,
   type NewValues,
   LEAVE_EXISTING_VALUES,
   SET_TO_NULL,
   type AlertState
 } from './types'
-import { utils } from './utils'
+import Esri = __esri
 
 const { useState, useEffect } = React
+
+const validateApplyEditsResult = (result: Esri.EditsResult): ValidationResult => {
+  // Extract arrays for different edit results
+  const resultArrays = [
+    result.addFeatureResults,
+    result.updateFeatureResults,
+    result.deleteFeatureResults,
+    result.addAttachmentResults,
+    result.deleteAttachmentResults,
+    result.updateAttachmentResults
+  ].filter(Boolean)
+
+  return resultArrays.reduce(
+    (acc, resultArray) => {
+      acc.total += resultArray.length
+      resultArray.forEach(editResult => editResult.error ? acc.errorCount++ : acc.successful++)
+      return acc
+    },
+    { total: 0, errorCount: 0, successful: 0 }
+  )
+}
 
 const Widget = (props: AllWidgetProps<IMConfig>) => {
   const [dataSource, setDataSource] = useState<DataSource | undefined>(undefined)
@@ -52,6 +75,96 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
     }
   }, [selectedFeatureIds])
 
+  const isDsConfigured = () => {
+    if (props.useDataSources &&
+      props.useDataSources.length === 1 &&
+      props.useDataSources[0].fields &&
+      props.useDataSources[0].fields.length > 0
+    ) {
+      return true
+    }
+    return false
+  }
+
+  const dsCreated = (ds: FeatureLayerDataSource) => {
+    setDataSource(ds)
+    const lyr: FeatureLayer = ds.layer
+    setEditableFeatureLayer(lyr)
+    const fields: FieldArray = Array.from(props.config.fields).map((f) => {
+      const field: Esri.Field = lyr.fieldsIndex.get(f.name)
+      return {
+        name: field.name,
+        alias: field.alias,
+        domain: field.domain as CodedValueDomain,
+        allowNulls: f.allowNulls
+      }
+    })
+    setFieldsToUpdate(fields)
+    setWidgetIsBusy(false)
+  }
+
+  const handleSelectedCodeChange = (
+    event: React.ChangeEvent<HTMLSelectElement>,
+    fieldName: string,
+    newValues: NewValues
+  ) => {
+    const _newValue: string | number = event.target.value
+    const _newValues = { ...newValues, [fieldName]: event.target.value }
+    if (_newValue === LEAVE_EXISTING_VALUES) {
+      delete _newValues[fieldName]
+    } else if (_newValue === SET_TO_NULL) {
+      _newValues[fieldName] = null
+    }
+    setNewValues(_newValues)
+  }
+
+  const handleSelectionChange = (
+    selection: ImmutableArray<string>
+  ): void => {
+    //console.log(`Handle selection change: ${selection ? selection.toString() : 'no selection object'}`)
+    if (selection) {
+      setSelectedFeatureIds(selection)
+    }
+  }
+
+  const handleBulkUpdateClick = async (
+    newValues: NewValues
+  ) => {
+    const featuresToUpdate: any[] = []
+
+    selectedFeatureIds.forEach((id: string | number) => {
+      if (typeof id === 'string') {
+        id = parseInt(id)
+      }
+      const feature = { attributes: { ...newValues, [editableFeatureLayer.objectIdField]: id } }
+      featuresToUpdate.push(feature)
+    })
+    setWidgetIsBusy(true)
+    setAlertState({ type: null, message: '' })
+    const result: Esri.EditsResult = await editableFeatureLayer.applyEdits({ updateFeatures: featuresToUpdate })
+    const validation: ValidationResult = validateApplyEditsResult(result)
+
+    // Refresh the data source if edits were applied successfully
+    if (validation.successful > 0) {
+      //can't figure out a way to get an associated List widget to refresh it's data,
+      //so for now best to just clear the selection and force the user to reselect records.
+      dataSource.selectRecordsByIds([])
+      setNewValues({})
+    }
+    setWidgetIsBusy(false)
+
+    // Set the alert based on validation result
+    if (validation.errorCount === 0) {
+      setAlertState({ type: 'success', message: props.intl.formatMessage({ id: 'alertSuccess', defaultMessage: defaultMessages.alertSuccess }) })
+    } else if (validation.errorCount === validation.total) {
+      setAlertState({ type: 'error', message: props.intl.formatMessage({ id: 'alertError', defaultMessage: defaultMessages.alertError }) })
+      console.error(result)
+    } else {
+      setAlertState({ type: 'warning', message: props.intl.formatMessage({ id: 'alertWarning', defaultMessage: defaultMessages.alertWarning }) })
+      console.warn(result)
+    }
+  }
+
   const dataRender = (ds: DataSource, info: IMDataSourceInfo) => {
     if (ds && ds.getStatus() === DataSourceStatus.Loaded) {
       //const selectedRecords = ds.getSelectedRecordIds()
@@ -60,7 +173,9 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
     }
   }
 
-  if (!utils.isDsConfigured(props)) {
+  // BEGIN RENDER OF UI /////////////////////////////////////////////////////////////
+
+  if (!isDsConfigured()) {
     return <h3>
       Bulk Update Widget
       <br />
@@ -80,16 +195,9 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
       useDataSource={props.useDataSources[0]} query={{ where: '1=1' } as FeatureLayerQueryParams}
       widgetId={props.id}
       onDataSourceCreated={(ds) => {
-        utils.dsCreated(
-          props,
-          ds as FeatureLayerDataSource,
-          setDataSource,
-          setEditableFeatureLayer,
-          setFieldsToUpdate,
-          setWidgetIsBusy
-        )
-      } }
-      onSelectionChange={(selection) => { utils.handleSelectionChange(selection, setSelectedFeatureIds) } }
+        dsCreated(ds as FeatureLayerDataSource)
+      }}
+      onSelectionChange={(selection) => { handleSelectionChange(selection) }}
     >
       {dataRender}
     </DataSourceComponent>
@@ -104,7 +212,7 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
             className='pt-0'
             key={f.name}
             value={newValues[f.name]}
-            onChange={(event) => { utils.handleSelectedCodeChange(event, f.name, newValues, setNewValues) }}
+            onChange={(event) => { handleSelectedCodeChange(event, f.name, newValues) }}
             placeholder={
               `${props.intl.formatMessage({ id: 'selectionPlaceHolder', defaultMessage: defaultMessages.selectionPlaceHolder })}`
             }
@@ -133,16 +241,7 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
         type='primary'
         size='default'
         onClick={(evt) => {
-          utils.handleBulkUpdateClick(
-            props,
-            newValues,
-            selectedFeatureIds,
-            editableFeatureLayer,
-            setWidgetIsBusy,
-            setAlertState,
-            dataSource,
-            setNewValues
-          )
+          handleBulkUpdateClick(newValues)
         }}
         disabled={!(Object.keys(newValues).length > 0 && selectionCount > 0 && !widgetIsBusy)}
       >
