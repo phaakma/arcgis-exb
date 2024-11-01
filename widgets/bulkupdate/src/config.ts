@@ -10,6 +10,7 @@ export interface Config {
   fields: ArrayConfigFields
   widgetTitle: string
   buttonText: string
+  clearSelectionAfterApplyEdits: boolean
 }
 
 export type IMConfig = ImmutableObject<Config>

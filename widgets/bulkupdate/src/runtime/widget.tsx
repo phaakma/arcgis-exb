@@ -146,9 +146,11 @@ const Widget = (props: AllWidgetProps<IMConfig>) => {
 
     // Refresh the data source if edits were applied successfully
     if (validation.successful > 0) {
-      //can't figure out a way to get an associated List widget to refresh it's data,
-      //so for now best to just clear the selection and force the user to reselect records.
-      dataSource.selectRecordsByIds([])
+      if (props.config.clearSelectionAfterApplyEdits) {
+        //can't figure out a way to get an associated List widget to refresh it's data,
+        //so for now best to just clear the selection and force the user to reselect records.
+        dataSource.selectRecordsByIds([])
+      }
       setNewValues({})
     }
     setWidgetIsBusy(false)

@@ -7,7 +7,7 @@ import {
   type FeatureLayerDataSource
 } from 'jimu-core'
 import { type AllWidgetSettingProps } from 'jimu-for-builder'
-import { TextInput, Label, Checkbox } from 'jimu-ui'
+import { TextInput, Label, Checkbox, CollapsableToggle } from 'jimu-ui'
 import { DataSourceSelector, FieldSelector } from 'jimu-ui/advanced/data-source-selector'
 import {
   SettingSection
@@ -86,6 +86,14 @@ export default function Setting(props: AllWidgetSettingProps<IMConfig>) {
     })
   }
 
+  // Set whether to clear the record selection after applying edits
+  const setClearSelectionOptionHandler = (checked: boolean) => {
+    props.onSettingChange({
+      id: props.id,
+      config: props.config.set('clearSelectionAfterApplyEdits', checked)
+    })
+  }
+
   return <div className='widget-setting-listen-selection-change p-2'>
     <SettingSection title='Configure data settings'>
       <Label>Set the feature layer source. This must be an editable feature layer.</Label>
@@ -140,7 +148,22 @@ export default function Setting(props: AllWidgetSettingProps<IMConfig>) {
       }
     </SettingSection>
 
-    <SettingSection title='Configure display settings'>
+    <SettingSection>
+    <Label size='lg'>Clear Selection</Label>
+      <Label centric={true}>
+        <Checkbox
+          checked={props.config.clearSelectionAfterApplyEdits}
+          className='mr-2'
+          onChange={
+            (event, checked) => {
+              setClearSelectionOptionHandler(
+                checked
+              )
+            }}
+        />
+        After applying edits
+      </Label>
+
       <Label size='lg'>Widget title</Label>
       <Label size='sm'>Displays at the top of the widget</Label>
       <TextInput className='pb-2' type='text' defaultValue={props.config.widgetTitle} onAcceptValue={(val) => { labelChangeHandler('widgetTitle', val) }} />
