@@ -33,6 +33,8 @@ Follow the full steps in the link above to host the widget and add to ArcGIS Ent
 The npm command to compile the widget needs to be run from the ArcGIS Enterprise Developer client folder.  
 ```npm run build:prod```  
 
-The compiled widget is then found in the client/dist-prod/widgets directory.  
+The compiled widget is then found in the client/dist-prod/widgets directory.   
+
+Testing GitHub workflow
 
 
