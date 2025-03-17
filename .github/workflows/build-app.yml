@@ -1,0 +1,87 @@
+# Workflow for deploying static content to GitHub Pages
+# Combination of the default boilerplate code and the jobs from Gavin:
+# https://github.com/gavinr-maps/experience-builder-devops-example/blob/master/.github/workflows/build-app.yml
+
+name: Deploy static content to Pages
+
+on:
+  # Runs on pushes targeting the default branch
+  push:
+    branches: ["main"]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  Build-and-Deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+      - name: Download Experience Builder
+        # WARNING: 
+        # THIS METHOD OF DOWNLOADING EXPERIENCE BUILDER MAY BREAK IF ESRI CHANGES HOW DOWNLOADS WORK IN THE FUTURE.
+        # IN OTHER WORDS, IT COULD BREAK AT ANY TIME.
+        # THERE IS NO WARRANTY OR GUARANTEE THAT THIS COMMAND WILL WORK IN THE FUTURE.
+        # ONLY USE THIS COMMAND IF YOU UNDERSTAND HOW IT IS BEING USED AND ARE COMFORTABLE FIXING IT IF IT BREAKS:
+        run: curl -o exb.zip "$(curl -s 'https://downloads.arcgis.com/dms/rest/download/secured/arcgis-experience-builder-1.16.zip?f=json&folder=software%2FExperienceBuilder%2F1.16' | python3 -c "import sys, json; print(json.load(sys.stdin)['url'])")"
+      - name: Unzip Experience Builder
+        run: unzip -q exb.zip -d exb
+      - name: Copy Custom Widgets
+        run: cp -r widgets/* exb/ArcGISExperienceBuilder/client/your-extensions/widgets
+      - name: Copy Custom Themes
+        run: cp -r themes/* exb/ArcGISExperienceBuilder/client/your-extensions/themes
+      - name: Create App directory
+        run: mkdir public && cd public && mkdir apps && cd apps
+        working-directory: exb/ArcGISExperienceBuilder/server
+      - name: Copy apps
+        run: cp -r apps/* exb/ArcGISExperienceBuilder/server/public/apps
+      - name: NPM install client folder
+        run: npm ci
+        working-directory: exb/ArcGISExperienceBuilder/client
+      - name: NPM install in server folder
+        run: npm ci
+        working-directory: exb/ArcGISExperienceBuilder/server
+      - name: Build widgets - dev
+        run: npm run build:dev
+        working-directory: exb/ArcGISExperienceBuilder/client
+      - name: Build widgets
+        run: npm run build:prod
+        working-directory: exb/ArcGISExperienceBuilder/client
+      - name: Run download script
+        run: node -e "require('./server/src/middlewares/dev/apps/app-download.js').zipApp('0', 'app.zip')"
+        working-directory: exb/ArcGISExperienceBuilder
+        env:
+          NODE_ENV: production
+      - name: Unzip app zip
+        # ExB has non-standard file permissions so use chmod after unzip
+        run: |
+          unzip -q app.zip -d app
+          chmod -R 777 app
+        working-directory: exb/ArcGISExperienceBuilder
+      # - name: Generate screeenshot (optional)
+      #   working-directory: exb/ArcGISExperienceBuilder/app
+      #   continue-on-error: true
+      #   run: |
+      #     npm install --global pageres-cli
+      #     npm install --global serve
+      #     echo "{\"trailingSlash\":true}" > serve.json
+      #     serve . -p 5000 &
+      #     pageres http://localhost:5000/index.html 1024x768 --filename=screenshot --delay=15
+      - name: Deploy app zip to GH Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages
+          folder: exb/ArcGISExperienceBuilder/app
