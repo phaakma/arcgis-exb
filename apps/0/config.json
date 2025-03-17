@@ -1,0 +1,647 @@
+{
+  "pages": {
+    "page_0": {
+      "id": "page_0",
+      "mode": "FIT_WINDOW",
+      "type": "NORMAL",
+      "layout": {
+        "LARGE": "layout_0"
+      },
+      "isDefault": true,
+      "isVisible": true,
+      "label": "Page"
+    }
+  },
+  "layouts": {
+    "layout_0": {
+      "type": "FIXED",
+      "content": {
+        "1": {
+          "type": "WIDGET",
+          "widgetId": "widget_2",
+          "bbox": {
+            "left": "32.8%",
+            "right": "-0.0%",
+            "top": "0.0%",
+            "bottom": "18.6%",
+            "width": "67.2%",
+            "height": "81.4%"
+          },
+          "setting": {
+            "autoProps": {
+              "left": true,
+              "right": false,
+              "top": false,
+              "bottom": true
+            },
+            "vCenter": false,
+            "hCenter": false
+          }
+        },
+        "4": {
+          "type": "SECTION",
+          "sectionId": "section_1",
+          "bbox": {
+            "left": "0.0%",
+            "right": "73.6%",
+            "top": "-0.0%",
+            "bottom": "1.7%",
+            "width": "26.4%",
+            "height": "98.3%"
+          },
+          "setting": {
+            "autoProps": {
+              "left": false,
+              "right": true,
+              "top": false,
+              "bottom": true
+            },
+            "vCenter": false,
+            "hCenter": false
+          }
+        }
+      },
+      "order": [
+        "1",
+        "4"
+      ]
+    },
+    "layout_1": {
+      "content": {},
+      "type": "FIXED",
+      "label": "Map FixedLayout",
+      "order": []
+    },
+    "layout_2": {
+      "type": "FIXED",
+      "content": {
+        "1": {
+          "type": "WIDGET",
+          "bbox": {
+            "left": "2.5%",
+            "width": "94.4%",
+            "height": "76px",
+            "right": "11px",
+            "top": "50%",
+            "bottom": "8px"
+          },
+          "widgetId": "widget_5",
+          "setting": {
+            "lockParent": true,
+            "autoProps": {
+              "width": true,
+              "height": "CUSTOM",
+              "top": false,
+              "bottom": true,
+              "left": false,
+              "right": true
+            },
+            "vCenter": true,
+            "hCenter": false
+          },
+          "isPending": false
+        }
+      },
+      "order": [
+        "1"
+      ],
+      "label": "Default"
+    },
+    "layout_3": {
+      "type": "FIXED",
+      "content": {
+        "0": {
+          "type": "WIDGET",
+          "widgetId": "widget_1",
+          "bbox": {
+            "left": "2.9%",
+            "right": "1.4%",
+            "top": "10px",
+            "bottom": "65.5%",
+            "width": "95.7%",
+            "height": "356px"
+          },
+          "setting": {
+            "autoProps": {
+              "left": true,
+              "right": false,
+              "top": false,
+              "bottom": true
+            },
+            "vCenter": false,
+            "hCenter": false,
+            "lockParent": true
+          }
+        },
+        "1": {
+          "type": "WIDGET",
+          "widgetId": "widget_3",
+          "bbox": {
+            "left": "2.8%",
+            "right": "1.5%",
+            "top": "368px",
+            "bottom": "0.0%",
+            "width": "95.7%",
+            "height": "65.3%"
+          },
+          "setting": {
+            "autoProps": {
+              "left": true,
+              "right": false,
+              "top": true,
+              "bottom": false
+            },
+            "vCenter": false,
+            "hCenter": false,
+            "lockParent": true
+          }
+        }
+      },
+      "order": [
+        "0",
+        "1"
+      ]
+    }
+  },
+  "exbVersion": "1.15.0",
+  "mainSizeMode": "LARGE",
+  "theme": "themes/default/",
+  "forBuilderAttributes": {
+    "lockLayout": false,
+    "viewPortSize": {
+      "LARGE": {
+        "width": 1920,
+        "height": 1080
+      }
+    }
+  },
+  "template": "blankfullscreen",
+  "widgets": {
+    "widget_1": {
+      "uri": "widgets/bulkupdate/",
+      "version": "1.15.0",
+      "label": "Bulk Update",
+      "config": {
+        "exampleConfigProperty": "banana",
+        "_defaultstr": "{\"exampleConfigProperty\":\"banana\"}",
+        "calculateField": "CurrentlyAssignedTo",
+        "widgetTitle": "Assign selected tasks to users",
+        "valuePlaceHolder": "Select a user",
+        "buttonText": "Update tasks",
+        "calculateFields": [
+          "CurrentStatus",
+          "CurrentlyAssignedTo"
+        ],
+        "fields": [
+          {
+            "name": "CurrentStatus",
+            "allowNulls": false
+          },
+          {
+            "name": "CurrentlyAssignedTo",
+            "allowNulls": true
+          }
+        ],
+        "clearSelectionAfterApplyEdits": true
+      },
+      "id": "widget_1",
+      "style": {
+        "background": {
+          "color": "var(--primary-300)",
+          "fillType": "fill"
+        },
+        "boxShadow": {
+          "presetStyle": "shadow-none"
+        }
+      },
+      "useDataSourcesEnabled": true,
+      "useDataSources": [
+        {
+          "dataSourceId": "dataSource_1-192c67fb5dc-layer-2-192c67fbc3e-layer-4",
+          "mainDataSourceId": "dataSource_1-192c67fb5dc-layer-2-192c67fbc3e-layer-4",
+          "rootDataSourceId": "dataSource_1",
+          "fields": [
+            "CurrentStatus",
+            "CurrentlyAssignedTo"
+          ]
+        }
+      ]
+    },
+    "widget_2": {
+      "uri": "widgets/arcgis/arcgis-map/",
+      "version": "1.15.0",
+      "label": "Map",
+      "config": {
+        "toolConfig": {
+          "canZoom": true,
+          "canHome": true,
+          "canSearch": true,
+          "canNavigation": true,
+          "canSelect": true,
+          "canSelectState": true
+        },
+        "isUseCustomMapState": false,
+        "initialMapDataSourceID": "dataSource_1",
+        "initialMapState": null
+      },
+      "id": "widget_2",
+      "layouts": {
+        "MapFixedLayout": {
+          "LARGE": "layout_1"
+        }
+      },
+      "useDataSources": [
+        {
+          "dataSourceId": "dataSource_1",
+          "mainDataSourceId": "dataSource_1"
+        }
+      ]
+    },
+    "widget_3": {
+      "uri": "widgets/common/list/",
+      "version": "1.15.0",
+      "label": "List",
+      "config": {
+        "maxItems": 100,
+        "space": 10,
+        "verticalSpace": 10,
+        "horizontalSpace": 10,
+        "itemsPerPage": 10,
+        "isItemStyleConfirm": true,
+        "isInitialed": true,
+        "pageStyle": "SCROLL",
+        "itemStyle": "STYLE5",
+        "hoverType": "HOVER0",
+        "selectedStyle": "STYLE0",
+        "differentOddEven": false,
+        "scrollBarOpen": true,
+        "direction": "VERTICAL",
+        "alignType": "CENTER",
+        "scrollStep": 2,
+        "cardConfigs": {
+          "DEFAULT": {
+            "cardSize": {
+              "LARGE": {
+                "width": 360.2430725097656,
+                "height": 94.65277099609375
+              }
+            },
+            "enable": true,
+            "backgroundStyle": {
+              "border": {
+                "type": "solid",
+                "color": "var(--light-400)",
+                "width": "1px"
+              }
+            },
+            "listLayout": "Custom"
+          },
+          "HOVER": {
+            "cardSize": {
+              "LARGE": {
+                "width": 360.2430725097656,
+                "height": 94.65277099609375
+              }
+            },
+            "enable": false,
+            "backgroundStyle": {
+              "border": {
+                "type": "solid",
+                "color": "var(--light-400)",
+                "width": "1px"
+              }
+            },
+            "listLayout": "Auto"
+          },
+          "SELECTED": {
+            "cardSize": {
+              "LARGE": {
+                "width": 360.2430725097656,
+                "height": 94.65277099609375
+              }
+            },
+            "backgroundStyle": {
+              "border": {
+                "type": "solid",
+                "color": "var(--primary-500)",
+                "width": "1px"
+              }
+            },
+            "selectionMode": "MULTIPLE",
+            "listLayout": "Auto"
+          }
+        },
+        "style": {
+          "id": "default"
+        },
+        "isCheckEmptyTemplate": false,
+        "filters": null,
+        "isShowAutoRefresh": false,
+        "layoutType": "ROW",
+        "keepAspectRatio": false,
+        "showRefresh": true,
+        "showClearSelected": true,
+        "showRecordCount": true,
+        "sortOpen": false,
+        "searchOpen": true,
+        "filterOpen": false,
+        "showSelectedOnlyOpen": false,
+        "noDataMessage": "Please select records",
+        "sqlExprObj": null,
+        "sortFields": null,
+        "navigatorOpen": false
+      },
+      "id": "widget_3",
+      "useDataSourcesEnabled": true,
+      "layouts": {
+        "DEFAULT": {
+          "LARGE": "layout_2"
+        }
+      },
+      "dataActions": {
+        "showOnMap": {
+          "config": {
+            "isUseCustomSymbol": true,
+            "symbolOption": {
+              "pointSymbol": {
+                "type": "esriSMS",
+                "color": [
+                  255,
+                  255,
+                  0,
+                  150
+                ],
+                "angle": 0,
+                "xoffset": 0,
+                "yoffset": 0,
+                "size": 12,
+                "style": "esriSMSCircle",
+                "outline": {
+                  "type": "esriSLS",
+                  "color": [
+                    255,
+                    255,
+                    0,
+                    150
+                  ],
+                  "width": 1,
+                  "style": "esriSLSSolid"
+                }
+              },
+              "polylineSymbol": {
+                "type": "esriSLS",
+                "color": [
+                  255,
+                  255,
+                  0,
+                  150
+                ],
+                "width": 0.75,
+                "style": "esriSLSSolid"
+              },
+              "polygonSymbol": {
+                "type": "esriSFS",
+                "color": [
+                  255,
+                  255,
+                  0,
+                  150
+                ],
+                "outline": {
+                  "type": "esriSLS",
+                  "color": [
+                    255,
+                    255,
+                    0,
+                    150
+                  ],
+                  "width": 1,
+                  "style": "esriSLSSolid"
+                },
+                "style": "esriSFSSolid"
+              }
+            }
+          }
+        }
+      },
+      "useDataSources": [
+        {
+          "dataSourceId": "dataSource_1-192c67fb5dc-layer-2-192c67fbc3e-layer-4-selection",
+          "mainDataSourceId": "dataSource_1-192c67fb5dc-layer-2-192c67fbc3e-layer-4",
+          "rootDataSourceId": "dataSource_1",
+          "fields": [],
+          "dataViewId": "selection"
+        }
+      ],
+      "style": {
+        "background": {
+          "color": "var(--primary-100)",
+          "fillType": "fill"
+        },
+        "boxShadow": {
+          "presetStyle": "shadow-none"
+        }
+      },
+      "outputDataSources": [],
+      "enableDataAction": false
+    },
+    "widget_5": {
+      "uri": "widgets/common/text/",
+      "version": "1.15.0",
+      "label": "Text",
+      "config": {
+        "text": "<p><exp data-uniqueid=\"5a64bc7b_cfc2_9666_0cd9_438abe6327ce\" data-dsid=\"dataSource_1-192c67fb5dc-layer-2-192c67fbc3e-layer-4-selection\" data-expression=\"%7B%22name%22%3A%22%7BCurrently%20Assigned%20To%7D%22%2C%22parts%22%3A%5B%7B%22type%22%3A%22FIELD%22%2C%22exp%22%3A%22%7BCurrently%20Assigned%20To%7D%22%2C%22dataSourceId%22%3A%22dataSource_1-192c67fb5dc-layer-2-192c67fbc3e-layer-4-selection%22%2C%22jimuFieldName%22%3A%22CurrentlyAssignedTo%22%2C%22isFromRepeatedDataSourceContext%22%3Atrue%7D%5D%7D\">﻿<span contenteditable=\"false\">{Currently Assigned To}</span>﻿</exp> </p><p>Site: <exp data-uniqueid=\"594e3c1a_f9e7_6877_2466_9ffa4c2fdced\" data-dsid=\"dataSource_1-192c67fb5dc-layer-2-192c67fbc3e-layer-4-selection\" data-expression=\"%7B%22name%22%3A%22%7BSite%20Name%7D%22%2C%22parts%22%3A%5B%7B%22type%22%3A%22FIELD%22%2C%22exp%22%3A%22%7BSite%20Name%7D%22%2C%22dataSourceId%22%3A%22dataSource_1-192c67fb5dc-layer-2-192c67fbc3e-layer-4-selection%22%2C%22jimuFieldName%22%3A%22SiteName%22%2C%22isFromRepeatedDataSourceContext%22%3Atrue%7D%5D%7D\">﻿<span contenteditable=\"false\">{Site Name}</span>﻿</exp> </p>",
+        "style": {
+          "verticalAlign": "start",
+          "wrap": true,
+          "overflow": "scroll",
+          "padding": "p-1"
+        }
+      },
+      "id": "widget_5",
+      "useDataSources": [
+        {
+          "dataSourceId": "dataSource_1-192c67fb5dc-layer-2-192c67fbc3e-layer-4-selection",
+          "mainDataSourceId": "dataSource_1-192c67fb5dc-layer-2-192c67fbc3e-layer-4",
+          "rootDataSourceId": "dataSource_1",
+          "fields": [],
+          "dataViewId": "selection"
+        }
+      ],
+      "useDataSourcesEnabled": true,
+      "style": {
+        "background": {
+          "color": "var(--light-100)",
+          "fillType": "fill"
+        },
+        "boxShadow": {
+          "presetStyle": "shadow-sm"
+        },
+        "borderRadius": null,
+        "border": {
+          "color": "var(--light-600)",
+          "type": "solid",
+          "width": "2px"
+        }
+      }
+    }
+  },
+  "widgetsManifest": {},
+  "views": {
+    "view_1": {
+      "id": "view_1",
+      "label": "View",
+      "layout": {
+        "LARGE": "layout_3"
+      }
+    }
+  },
+  "sections": {
+    "section_1": {
+      "id": "section_1",
+      "label": "Section",
+      "views": [
+        "view_1"
+      ],
+      "dotsNav": {
+        "visible": false
+      },
+      "arrowsNav": {
+        "visible": false
+      },
+      "style": {
+        "boxShadow": {
+          "presetStyle": "shadow"
+        }
+      }
+    }
+  },
+  "dialogs": {},
+  "dataSources": {
+    "dataSource_1": {
+      "id": "dataSource_1",
+      "type": "WEB_MAP",
+      "sourceLabel": "LINZ Address Point web map",
+      "itemId": "fd7b46ea9c0a44aa86f63e9034d2334f",
+      "portalUrl": "https://svcs-eaglegis.maps.arcgis.com",
+      "childDataSourceJsons": {
+        "192c67fb5dc-layer-2": {
+          "id": "dataSource_1-192c67fb5dc-layer-2",
+          "type": "GROUP_LAYER",
+          "sourceLabel": "PWO",
+          "childDataSourceJsons": {
+            "192c67fbc3e-layer-4": {
+              "id": "dataSource_1-192c67fb5dc-layer-2-192c67fbc3e-layer-4",
+              "type": "FEATURE_LAYER",
+              "sourceLabel": "PWO",
+              "url": "https://services.arcgis.com/hMYNkrKaydBeWRXE/arcgis/rest/services/PWO/FeatureServer/1",
+              "portalUrl": "https://www.arcgis.com",
+              "itemId": "62cce3a143de480b912be8a3e34a5fbd",
+              "layerId": "1",
+              "query": {
+                "id": "dataSource_1-192c67fb5dc-layer-2-192c67fbc3e-layer-4",
+                "label": "PWO",
+                "refreshInterval": 0
+              }
+            },
+            "192c67fbc3d-layer-3": {
+              "id": "dataSource_1-192c67fb5dc-layer-2-192c67fbc3d-layer-3",
+              "type": "FEATURE_LAYER",
+              "sourceLabel": "PRSite",
+              "url": "https://services.arcgis.com/hMYNkrKaydBeWRXE/arcgis/rest/services/PWO/FeatureServer/0",
+              "portalUrl": "https://www.arcgis.com",
+              "itemId": "62cce3a143de480b912be8a3e34a5fbd",
+              "layerId": "0"
+            }
+          },
+          "isHidden": false
+        },
+        "192bb5c3061-layer-2": {
+          "id": "dataSource_1-192bb5c3061-layer-2",
+          "type": "FEATURE_LAYER",
+          "sourceLabel": "LINZ NZ Addresses ",
+          "url": "https://services.arcgis.com/xdsHIIxuCWByZiCB/arcgis/rest/services/LINZ_NZ_Addresses_Pilot/FeatureServer/0",
+          "portalUrl": "https://www.arcgis.com",
+          "itemId": "8d66dcb16f8a4ca8916b4b6d6114d9cf",
+          "layerId": "0"
+        },
+        "192c67fbc3e-layer-5": {
+          "id": "dataSource_1-192c67fbc3e-layer-5",
+          "type": "FEATURE_LAYER",
+          "sourceLabel": "PWO - Visit",
+          "url": "https://services.arcgis.com/hMYNkrKaydBeWRXE/arcgis/rest/services/PWO/FeatureServer/2",
+          "portalUrl": "https://www.arcgis.com",
+          "itemId": "62cce3a143de480b912be8a3e34a5fbd",
+          "layerId": "2"
+        }
+      },
+      "isHidden": false
+    }
+  },
+  "messageConfigs": {
+    "messageConfig_1": {
+      "id": "messageConfig_1",
+      "widgetId": "widget_2",
+      "messageType": "DATA_RECORDS_SELECTION_CHANGE",
+      "actions": [
+        {
+          "actionId": "select-data-record-action-1729892691988",
+          "messageWidgetId": "widget_2",
+          "actionName": "select data record action",
+          "description": null,
+          "config": {
+            "messageUseDataSource": {
+              "dataSourceId": "dataSource_1-192bb5c3061-layer-2",
+              "mainDataSourceId": "dataSource_1-192bb5c3061-layer-2",
+              "rootDataSourceId": "dataSource_1",
+              "fields": []
+            },
+            "actionUseDataSource": {
+              "dataSourceId": "dataSource_1-192bb5c3061-layer-2",
+              "mainDataSourceId": "dataSource_1-192bb5c3061-layer-2",
+              "rootDataSourceId": "dataSource_1",
+              "fields": []
+            },
+            "sqlExprObj": null,
+            "enabledDataRelationShip": true,
+            "connectionType": "SET_CUSTOM_FIELDS"
+          },
+          "version": "1.15.0",
+          "useDataSources": [
+            {
+              "dataSourceId": "dataSource_1-192bb5c3061-layer-2",
+              "mainDataSourceId": "dataSource_1-192bb5c3061-layer-2",
+              "rootDataSourceId": "dataSource_1",
+              "fields": []
+            },
+            {
+              "dataSourceId": "dataSource_1-192bb5c3061-layer-2",
+              "mainDataSourceId": "dataSource_1-192bb5c3061-layer-2",
+              "rootDataSourceId": "dataSource_1",
+              "fields": []
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "attributes": {
+    "portalUrl": "https://svcs-eaglegis.maps.arcgis.com"
+  },
+  "sharedThemeVariables": {
+    "header": {},
+    "body": {},
+    "button": {},
+    "logo": {
+      "small": "https://svcs-eaglegis.maps.arcgis.com/sharing/rest/content/items/a4e32ae8da5b44a48f2448110c2c48da/data"
+    }
+  },
+  "originExbVersion": "1.15.0",
+  "pageStructure": [
+    {
+      "page_0": []
+    }
+  ],
+  "timestamp": 1734735927712,
+  "publishTimestamp": 1742186202022
+}
