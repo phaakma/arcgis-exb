@@ -41,8 +41,11 @@ jobs:
         run: unzip -q exb.zip -d exb
       - name: Copy Custom Widgets
         run: cp -r widgets/* exb/ArcGISExperienceBuilder/client/your-extensions/widgets
-      - name: Copy Custom Themes
-        run: cp -r themes/* exb/ArcGISExperienceBuilder/client/your-extensions/themes
+      - name: Check and Copy Custom Themes
+        run: |
+          if [ "$(ls -A themes)" ]; then
+            cp -r themes/* exb/ArcGISExperienceBuilder/client/your-extensions/themes
+          fi
       - name: Create App directory
         run: mkdir public && cd public && mkdir apps && cd apps
         working-directory: exb/ArcGISExperienceBuilder/server
