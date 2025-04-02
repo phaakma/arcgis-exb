@@ -3,6 +3,10 @@ Custom ArcGIS Experience Builder widgets and themes.
 
 Author: Paul Haakma  
 
+## Example web app  
+[Link to example static web app](https://phaakma.github.io/arcgis-exb/)  
+*Note that the web app is secured so non-authenticated users will not be able to view it.*  
+
 ## Installation  
 
 Refer to this documentation:  
